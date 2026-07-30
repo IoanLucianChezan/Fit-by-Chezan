@@ -160,6 +160,18 @@
     flex-wrap: wrap;
     box-shadow: var(--shadow-sm);
   }
+
+  @media (max-width: 700px) {
+    nav {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      justify-content: flex-start;
+      scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
+    nav button { flex: 0 0 auto; }
+  }
   nav button {
     padding: 9px 14px;
     background: transparent;
@@ -335,6 +347,29 @@
   .btn-finish { background: var(--primary); font-size: 16px; padding: 12px 24px; }
   .workout-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 16px; }
 
+  .mode-toggle { display: flex; gap: 6px; margin-bottom: 16px; }
+  .mode-toggle-btn { background: var(--surface-2); color: var(--text-muted); box-shadow: none; border: 1px solid var(--border); flex: 1; }
+  .mode-toggle-btn:hover { background: var(--surface); transform: none; }
+  .mode-toggle-btn.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 700; }
+
+  .paste-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    text-align: center;
+    cursor: text;
+    color: var(--text-muted);
+    font-size: 14px;
+    background: var(--surface-2);
+    transition: border-color var(--transition), background-color var(--transition), color var(--transition);
+  }
+  .paste-zone:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
   .motivational-quote { display: none; padding: 12px 14px; border-radius: var(--radius); background: var(--surface-2); border: 1px solid var(--border); text-align: center; }
   .motivational-quote:not(:empty) { display: block; margin-bottom: 14px; }
   .motivational-quote-text {
@@ -387,6 +422,17 @@
   .stat-value { font-size: 28px; font-weight: 800; color: var(--text); }
   .stat-value-small { font-size: 15px; font-weight: 700; }
 
+  .stats-chart { width: 100%; overflow-x: auto; }
+  .stats-chart svg { display: block; }
+  .stats-bar { transition: fill 200ms ease, opacity 200ms ease; }
+  .stats-bar-workout { fill: var(--primary); }
+  .stats-bar-workout:hover { fill: var(--primary-hover); }
+  .stats-bar-km { fill: var(--accent); }
+  .stats-bar-km:hover { opacity: 0.8; }
+  .stats-chart-label { font-size: 11px; fill: var(--text-muted); }
+  .stats-chart-value { font-size: 11px; fill: var(--text); font-weight: 600; }
+  .stats-year-field { max-width: 160px; }
+
   .config-subsection { margin-bottom: 16px; }
   .config-subsection h3 { font-size: 14px; margin-bottom: 6px; }
 
@@ -437,6 +483,8 @@
     <button data-tab="nutrition">Nutriție</button>
     <button data-tab="easy-workout">Easy WOD</button>
     <button data-tab="hero-workout">Hero WOD</button>
+    <button data-tab="manual">Manual</button>
+    <button data-tab="stats">Statistici</button>
   </nav>
 
   <!-- ================= 1. HOME ================= -->
@@ -454,6 +502,10 @@
         <div class="stat-label">Nutriție azi</div>
         <div class="stat-value stat-value-small" id="stat-nutrition-today">–</div>
         <div class="stat-value stat-value-small" id="stat-nutrition-protein-today"></div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Km alergați luna asta</div>
+        <div class="stat-value" id="stat-run-km-month">–</div>
       </div>
     </div>
 
@@ -751,6 +803,83 @@
     </div>
   </section>
 
+  <!-- ================= 6. ADAUGĂ MANUAL ================= -->
+  <section id="manual">
+    <div class="card">
+      <h2>Adaugă manual</h2>
+      <div class="mode-toggle">
+        <button type="button" id="manual-mode-workout" class="mode-toggle-btn active">🏋️ Antrenament</button>
+        <button type="button" id="manual-mode-run" class="mode-toggle-btn">🏃 Alergare</button>
+      </div>
+
+      <div id="manual-workout-panel">
+        <p class="hint">Scrie liber antrenamentul, sau încarcă/lipește o poză ca AI să o transcrie automat în text.</p>
+
+        <div class="paste-zone" id="manual-paste-zone" tabindex="0">📋 Apasă aici și dă Paste (Ctrl+V) cu o poză a antrenamentului</div>
+        <div class="actions-row" style="display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap;">
+          <input type="file" id="manual-photo-input" accept="image/*" style="display:none;">
+          <button type="button" id="manual-photo-btn">📷 Încarcă poză</button>
+          <span id="manual-photo-status"></span>
+        </div>
+
+        <textarea id="manual-workout-text" rows="10" style="width:100%; margin-top:14px; font-family:inherit;" placeholder="Descrie antrenamentul (exerciții, seturi, repetări, greutăți)..."></textarea>
+
+        <div class="workout-actions" style="margin-top:16px;">
+          <button type="button" id="manual-workout-finish-btn" class="btn-big btn-finish">✓ Marchează ca finalizat</button>
+          <span id="manual-workout-finish-status"></span>
+        </div>
+      </div>
+
+      <div id="manual-run-panel" style="display:none;">
+        <p class="hint">Introdu distanța și pace-ul pentru alergarea de azi.</p>
+        <div class="settings-field">
+          <label for="manual-run-km">Distanță (km)</label>
+          <input type="number" id="manual-run-km" step="0.01" min="0">
+        </div>
+        <div class="settings-field">
+          <label for="manual-run-pace">Pace (min/km)</label>
+          <input type="text" id="manual-run-pace" placeholder="ex: 5:30">
+        </div>
+        <div class="workout-actions">
+          <button type="button" id="manual-run-save-btn" class="btn-big btn-finish">✓ Salvează alergarea</button>
+          <span id="manual-run-save-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Istoric antrenamente manuale</h2>
+      <div id="manual-workout-history"></div>
+    </div>
+
+    <div class="card">
+      <h2>Istoric alergări</h2>
+      <div id="manual-run-history"></div>
+    </div>
+  </section>
+
+  <!-- ================= 7. STATISTICI ================= -->
+  <section id="stats">
+    <div class="card">
+      <h2>Statistici anuale</h2>
+      <div class="settings-field stats-year-field">
+        <label for="stats-year-select">An</label>
+        <select id="stats-year-select"></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Antrenamente pe lună</h2>
+      <p class="hint">Include Workout, Easy WOD, Hero WOD și antrenamentele adăugate manual.</p>
+      <div id="stats-workouts-chart" class="stats-chart"></div>
+    </div>
+
+    <div class="card">
+      <h2>Km alergați pe lună</h2>
+      <div id="stats-km-chart" class="stats-chart"></div>
+    </div>
+  </section>
+
   <!-- ================= SETĂRI ================= -->
   <section id="settings">
     <div class="privacy-note">
@@ -788,6 +917,10 @@
       <div class="settings-field">
         <label for="set-groq-model-fallback">Model Groq (rezervă)</label>
         <input type="text" id="set-groq-model-fallback" placeholder="openai/gpt-oss-120b">
+      </div>
+      <div class="settings-field">
+        <label for="set-groq-vision-model">Model Groq (vision, pentru poze la Manual)</label>
+        <input type="text" id="set-groq-vision-model" placeholder="qwen/qwen3.6-27b">
       </div>
     </div>
 
@@ -832,6 +965,7 @@
       btn.classList.add('active');
       document.getElementById(btn.dataset.tab).classList.add('active');
       if (btn.dataset.tab === 'home') renderHome();
+      if (btn.dataset.tab === 'stats') renderStatsCharts();
     });
   });
 
@@ -1000,13 +1134,14 @@
     cerebrasModel: 'gpt-oss-120b',
     cerebrasModelFallback: 'gemma-4-31b',
     groqModel: 'llama-3.3-70b-versatile',
-    groqModelFallback: 'openai/gpt-oss-120b'
+    groqModelFallback: 'openai/gpt-oss-120b',
+    groqVisionModel: 'qwen/qwen3.6-27b'
   };
 
   function loadSettings() {
     return lsGet(SETTINGS_KEY, {
       cerebrasKey: '', cerebrasModel: '', cerebrasModelFallback: '',
-      groqKey: '', groqModel: '', groqModelFallback: ''
+      groqKey: '', groqModel: '', groqModelFallback: '', groqVisionModel: ''
     });
   }
   function saveSettingsToStorage(s) { lsSet(SETTINGS_KEY, s); }
@@ -1818,6 +1953,237 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
   renderWodHistory('hero-history', HERO_HISTORY_KEY, e => e.heroName || `${e.day}, ${e.date}`);
 
   // ============================================================
+  // 6. Adaugă manual — antrenament (text/poză) + alergare
+  // ============================================================
+
+  const MANUAL_HISTORY_KEY = 'fw_manual_history';
+  const RUNS_KEY = 'fw_runs';
+
+  document.getElementById('manual-mode-workout').addEventListener('click', () => {
+    document.getElementById('manual-mode-workout').classList.add('active');
+    document.getElementById('manual-mode-run').classList.remove('active');
+    document.getElementById('manual-workout-panel').style.display = '';
+    document.getElementById('manual-run-panel').style.display = 'none';
+  });
+  document.getElementById('manual-mode-run').addEventListener('click', () => {
+    document.getElementById('manual-mode-run').classList.add('active');
+    document.getElementById('manual-mode-workout').classList.remove('active');
+    document.getElementById('manual-run-panel').style.display = '';
+    document.getElementById('manual-workout-panel').style.display = 'none';
+  });
+
+  const IMAGE_WORKOUT_TRANSCRIBE_SYSTEM_PROMPT = `Ești un asistent care extrage text despre un
+antrenament dintr-o poză sau captură de ecran (poate fi dintr-o aplicație de fitness, un
+tabel/whiteboard din sală, sau scris de mână). Transcrie tot ce ține de antrenament: exerciții,
+seturi, repetări, greutăți/procente, timpi, distanțe, note - orice e vizibil și relevant. Nu
+inventa informații care nu apar în imagine. Răspunde direct cu textul antrenamentului, formatat
+clar, fără introduceri sau explicații.`;
+
+  async function handleManualPhoto(file) {
+    const status = document.getElementById('manual-photo-status');
+    const btn = document.getElementById('manual-photo-btn');
+    if (!file || !file.type.startsWith('image/')) return;
+    btn.disabled = true;
+    status.textContent = '';
+    try {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('citirea imaginii a eșuat'));
+        reader.readAsDataURL(file);
+      });
+      const s = loadSettings();
+      if (!s.groqKey) throw new Error('Configurează cheia Groq în Setări (necesară pentru transcrierea din poză).');
+      const visionModel = getModelOrDefault(s.groqVisionModel, 'groqVisionModel');
+      const messages = [
+        { role: 'system', content: IMAGE_WORKOUT_TRANSCRIBE_SYSTEM_PROMPT },
+        { role: 'user', content: [
+            { type: 'text', text: 'Extrage antrenamentul din această imagine.' },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ] }
+      ];
+      const content = await callChatCompletionClient('https://api.groq.com/openai/v1/chat/completions', s.groqKey, visionModel, messages);
+      document.getElementById('manual-workout-text').value = stripThinking(content);
+    } catch (err) {
+      status.textContent = `Eroare: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('manual-photo-btn').addEventListener('click', () => {
+    document.getElementById('manual-photo-input').click();
+  });
+  document.getElementById('manual-photo-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (file) handleManualPhoto(file);
+  });
+  document.getElementById('manual-paste-zone').addEventListener('paste', (e) => {
+    const items = e.clipboardData?.items || [];
+    for (const item of items) {
+      if (item.type && item.type.startsWith('image/')) {
+        e.preventDefault();
+        handleManualPhoto(item.getAsFile());
+        break;
+      }
+    }
+  });
+
+  document.getElementById('manual-workout-finish-btn').addEventListener('click', async () => {
+    const status = document.getElementById('manual-workout-finish-status');
+    const textarea = document.getElementById('manual-workout-text');
+    const text = textarea.value.trim();
+    if (!text) { status.textContent = 'Scrie sau încarcă un antrenament mai întâi.'; return; }
+
+    const now = new Date();
+    const entry = { day: RO_DAYS[now.getDay()], date: localDateStr(now), content: text, generatedAt: now.toISOString(), muscleGroups: [] };
+    const history = lsGet(MANUAL_HISTORY_KEY, []);
+    history.unshift(entry);
+    lsSet(MANUAL_HISTORY_KEY, history);
+    status.textContent = 'Salvat!';
+    showCelebration();
+    textarea.value = '';
+    renderWodHistory('manual-workout-history', MANUAL_HISTORY_KEY, e => `${e.day}, ${e.date}`);
+    renderHome();
+    setTimeout(() => { status.textContent = ''; }, 2000);
+
+    const muscles = await classifyMuscles(entry.content);
+    if (muscles.length) {
+      const all = lsGet(MANUAL_HISTORY_KEY, []);
+      const found = all.find(e => e.generatedAt === entry.generatedAt);
+      if (found) {
+        found.muscleGroups = muscles;
+        lsSet(MANUAL_HISTORY_KEY, all);
+        renderWodHistory('manual-workout-history', MANUAL_HISTORY_KEY, e => `${e.day}, ${e.date}`);
+        renderHome();
+      }
+    }
+  });
+
+  renderWodHistory('manual-workout-history', MANUAL_HISTORY_KEY, e => `${e.day}, ${e.date}`);
+
+  function renderRunHistory() {
+    const container = document.getElementById('manual-run-history');
+    const runs = lsGet(RUNS_KEY, []);
+    container.innerHTML = '';
+    if (!runs.length) {
+      container.innerHTML = '<p class="hint">Nicio alergare înregistrată încă.</p>';
+      return;
+    }
+    runs.forEach(run => {
+      const item = document.createElement('div');
+      item.className = 'meal-history-item';
+      item.innerHTML = `
+        <div>${escapeHtml(run.date)} — ${run.km} km${run.pace ? ` @ ${escapeHtml(run.pace)}/km` : ''}</div>
+        <div class="history-actions"><button type="button" class="delete-btn">Șterge</button></div>
+      `;
+      item.querySelector('.delete-btn').addEventListener('click', () => {
+        const all = lsGet(RUNS_KEY, []).filter(r => r.savedAt !== run.savedAt);
+        lsSet(RUNS_KEY, all);
+        renderRunHistory();
+        renderHome();
+      });
+      container.appendChild(item);
+    });
+  }
+
+  document.getElementById('manual-run-save-btn').addEventListener('click', () => {
+    const status = document.getElementById('manual-run-save-status');
+    const kmInput = document.getElementById('manual-run-km');
+    const paceInput = document.getElementById('manual-run-pace');
+    const km = Number(kmInput.value);
+    if (!km || km <= 0) { status.textContent = 'Introdu o distanță validă (km).'; return; }
+
+    const entry = { date: todayStr(), km, pace: paceInput.value.trim(), savedAt: new Date().toISOString() };
+    const runs = lsGet(RUNS_KEY, []);
+    runs.unshift(entry);
+    lsSet(RUNS_KEY, runs);
+    kmInput.value = '';
+    paceInput.value = '';
+    status.textContent = 'Salvat!';
+    showCelebration();
+    renderRunHistory();
+    renderHome();
+    setTimeout(() => { status.textContent = ''; }, 2000);
+  });
+
+  renderRunHistory();
+
+  // ============================================================
+  // 7. Statistici — grafice anuale (antrenamente/lună, km/lună)
+  // ============================================================
+
+  const MONTH_SHORT_RO = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Noi', 'Dec'];
+
+  function buildBarChart(values, labels, barClass, formatFn) {
+    const width = 780, height = 220, baseline = 190, topPad = 26;
+    const slot = width / values.length;
+    const barWidth = Math.min(34, slot * 0.6);
+    const maxVal = Math.max(1, ...values);
+    let svg = `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" role="img">`;
+    svg += `<line x1="0" y1="${baseline}" x2="${width}" y2="${baseline}" stroke="var(--border)" stroke-width="1" />`;
+    values.forEach((val, i) => {
+      const x = i * slot + (slot - barWidth) / 2;
+      const h = (val / maxVal) * (baseline - topPad);
+      const y = baseline - h;
+      svg += `<rect class="stats-bar ${barClass}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${h.toFixed(1)}" rx="4"><title>${escapeHtml(labels[i])}: ${escapeHtml(formatFn(val))}</title></rect>`;
+      if (val > 0) {
+        svg += `<text class="stats-chart-value" x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle">${escapeHtml(formatFn(val))}</text>`;
+      }
+      svg += `<text class="stats-chart-label" x="${(x + barWidth / 2).toFixed(1)}" y="${(baseline + 16).toFixed(1)}" text-anchor="middle">${escapeHtml(labels[i])}</text>`;
+    });
+    svg += `</svg>`;
+    return svg;
+  }
+
+  function populateStatsYearSelect() {
+    const select = document.getElementById('stats-year-select');
+    const currentYear = new Date().getFullYear();
+    select.innerHTML = '';
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+      const opt = document.createElement('option');
+      opt.value = String(y);
+      opt.textContent = String(y);
+      if (y === currentYear) opt.selected = true;
+      select.appendChild(opt);
+    }
+  }
+
+  function renderStatsCharts() {
+    const year = document.getElementById('stats-year-select').value;
+    const easy = lsGet(EASY_HISTORY_KEY, []);
+    const hero = lsGet(HERO_HISTORY_KEY, []);
+    const workout = lsGet(WORKOUT_LOG_KEY, []);
+    const manual = lsGet(MANUAL_HISTORY_KEY, []);
+    const allWorkouts = [...easy, ...hero, ...workout, ...manual];
+    const runs = lsGet(RUNS_KEY, []);
+
+    const workoutsPerMonth = new Array(12).fill(0);
+    allWorkouts.forEach(e => {
+      if (e.date && e.date.startsWith(`${year}-`)) {
+        const monthIdx = Number(e.date.slice(5, 7)) - 1;
+        if (monthIdx >= 0 && monthIdx < 12) workoutsPerMonth[monthIdx]++;
+      }
+    });
+
+    const kmPerMonth = new Array(12).fill(0);
+    runs.forEach(r => {
+      if (r.date && r.date.startsWith(`${year}-`)) {
+        const monthIdx = Number(r.date.slice(5, 7)) - 1;
+        if (monthIdx >= 0 && monthIdx < 12) kmPerMonth[monthIdx] += Number(r.km) || 0;
+      }
+    });
+
+    document.getElementById('stats-workouts-chart').innerHTML = buildBarChart(workoutsPerMonth, MONTH_SHORT_RO, 'stats-bar-workout', v => String(v));
+    document.getElementById('stats-km-chart').innerHTML = buildBarChart(kmPerMonth, MONTH_SHORT_RO, 'stats-bar-km', v => `${v.toFixed(1)} km`);
+  }
+
+  populateStatsYearSelect();
+  document.getElementById('stats-year-select').addEventListener('change', renderStatsCharts);
+  renderStatsCharts();
+
+  // ============================================================
   // 1. Home — statistici + silueta musculară
   // ============================================================
 
@@ -1827,12 +2193,17 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
     const easy = lsGet(EASY_HISTORY_KEY, []);
     const hero = lsGet(HERO_HISTORY_KEY, []);
     const workout = lsGet(WORKOUT_LOG_KEY, []);
-    const all = [...easy, ...hero, ...workout];
+    const manual = lsGet(MANUAL_HISTORY_KEY, []);
+    const all = [...easy, ...hero, ...workout, ...manual];
 
     const workoutsToday = all.filter(e => e.date === today).length;
     const workoutsMonth = all.filter(e => e.date.startsWith(monthPrefix)).length;
     document.getElementById('stat-workouts-today').textContent = String(workoutsToday);
     document.getElementById('stat-workouts-month').textContent = String(workoutsMonth);
+
+    const runs = lsGet(RUNS_KEY, []);
+    const kmMonth = runs.filter(r => r.date.startsWith(monthPrefix)).reduce((sum, r) => sum + (Number(r.km) || 0), 0);
+    document.getElementById('stat-run-km-month').textContent = `${kmMonth.toFixed(1)} km`;
 
     const profile = lsGet(NUTRITION_PROFILE_KEY, DEFAULT_NUTRITION_PROFILE);
     const meals = lsGet(MEALS_KEY, []).filter(m => m.date === today);
@@ -1887,6 +2258,7 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
     document.getElementById('set-groq-key').value = s.groqKey || '';
     document.getElementById('set-groq-model').value = s.groqModel || '';
     document.getElementById('set-groq-model-fallback').value = s.groqModelFallback || '';
+    document.getElementById('set-groq-vision-model').value = s.groqVisionModel || '';
   }
 
   document.getElementById('save-settings').addEventListener('click', () => {
@@ -1897,7 +2269,8 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
       cerebrasModelFallback: document.getElementById('set-cerebras-model-fallback').value.trim(),
       groqKey: document.getElementById('set-groq-key').value.trim(),
       groqModel: document.getElementById('set-groq-model').value.trim(),
-      groqModelFallback: document.getElementById('set-groq-model-fallback').value.trim()
+      groqModelFallback: document.getElementById('set-groq-model-fallback').value.trim(),
+      groqVisionModel: document.getElementById('set-groq-vision-model').value.trim()
     };
     saveSettingsToStorage(s);
     status.textContent = 'Salvat.';

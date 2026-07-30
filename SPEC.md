@@ -19,11 +19,11 @@ ca să poată fi găzduită gratuit pe GitHub Pages și accesată de pe orice de
   Cerebras/Groq merg mereu live, niciodată din cache). Sunt fișiere statice companion, fără build
   step și fără server — nu contrazic regula de mai sus.
 
-## Module (5 taburi, trebuie să încapă pe o linie în navigare)
+## Module (6 taburi)
 
 1. **Home** (fostul Dashboard)
    - Statistici: antrenamente azi, antrenamente luna asta, nutriție azi (calorii/proteine vs
-     target) — FĂRĂ "km alergați" (nu mai există Garmin).
+     target), km alergați luna asta (din alergările introduse manual).
    - Silueta corporală (față + spate), SVG desenat manual, stil anatomic natural (nu doar o
      siluetă albă) — evidențiază cu verde grupele musculare lucrate azi, calculate din
      antrenamentele Workout, Easy WOD și Hero WOD finalizate azi.
@@ -69,11 +69,32 @@ ca să poată fi găzduită gratuit pe GitHub Pages și accesată de pe orice de
    - Același flux generare/regenerare/Finalizează + clasificare automată de mușchi + istoric
      simplu + contează pe Home/silueta musculară.
 
+6. **Manual** (adăugare manuală)
+   - Două moduri, comutabile din pagină: **Antrenament** și **Alergare**.
+   - **Antrenament**: câmp text liber, editabil; poți încărca o poză (buton) sau da Paste
+     (Ctrl+V) cu o poză — AI (Groq, model vision separat) transcrie antrenamentul din poză și
+     îl pune direct în câmpul de text, ca și cum ar fi fost scris manual (rămâne editabil după).
+     Buton "✓ Marchează ca finalizat" → salvează, clasifică automat mușchii lucrați (ca la
+     Easy/Hero WOD), animație de celebrare, istoric simplu cu ștergere. Contează în
+     statisticile de pe Home și în silueta musculară.
+   - **Alergare**: câmpuri distanță (km) și pace (min/km), buton de salvare, istoric simplu cu
+     ștergere. NU contează în "antrenamente azi/lună" și NU alimentează silueta musculară — are
+     propria statistică pe Home ("Km alergați luna asta").
+
+7. **Statistici**
+   - Selector de an (implicit anul curent - 5 până la anul curent + 5, ca să acopere și
+     antrenamentele planificate în anii viitori).
+   - Grafic cu bare: număr de antrenamente pe lună (Workout + Easy WOD + Hero WOD + Manual),
+     pentru anul selectat.
+   - Grafic cu bare: km alergați pe lună (din modulul Manual → Alergare), pentru anul selectat.
+   - Grafice SVG desenate manual, fără librării externe, în aceeași temă light/dark.
+
 ## Setări
 
 - Câmpuri pentru cheie API Cerebras + model + model de rezervă, cheie API Groq + model + model
   de rezervă (default-uri sugerate: Cerebras `gpt-oss-120b` / fallback `gemma-4-31b`; Groq
-  `llama-3.3-70b-versatile` / fallback `openai/gpt-oss-120b`).
+  `llama-3.3-70b-versatile` / fallback `openai/gpt-oss-120b`), plus un model Groq separat pentru
+  vision (transcriere poze la modulul Manual, default sugerat `qwen/qwen3.6-27b`).
 - Notă vizibilă: cheile rămân doar în browserul tău, nu sunt trimise nicăieri altundeva decât
   direct către Cerebras/Groq.
 
