@@ -81,7 +81,10 @@ ca să poată fi găzduită gratuit pe GitHub Pages și accesată de pe orice de
 
 La finalizare, AI clasifică automat (fără intervenția utilizatorului) ce grupe musculare au fost
 lucrate, dintr-o listă fixă: chest, back, shoulders, biceps, triceps, forearms, abs, glutes,
-quads, hamstrings, calves. Rezultatul se salvează pe intrare și alimentează silueta de pe Home.
+quads, hamstrings, calves — împreună cu un nivel de intensitate per mușchi: `high` (mușchi
+principal/agonist), `medium` (lucrat semnificativ) sau `low` (stabilizator/secundar). Rezultatul
+se salvează pe intrare și alimentează silueta de pe Home cu 3 nuanțe de culoare (ușor/moderat/
+intens), agregând nivelul maxim atins per mușchi din toate antrenamentele finalizate azi.
 
 ## Ce rămâne neschimbat față de aplicația originală
 

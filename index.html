@@ -23,6 +23,7 @@
     --text: #0f172a;
     --text-muted: #64748b;
     --primary: #16a34a;
+    --primary-rgb: 22, 163, 74;
     --primary-hover: #15803d;
     --primary-contrast: #ffffff;
     --accent: #0284c7;
@@ -46,6 +47,7 @@
       --text: #e2e8f0;
       --text-muted: #94a3b8;
       --primary: #22c55e;
+      --primary-rgb: 34, 197, 94;
       --primary-hover: #4ade80;
       --primary-contrast: #052e13;
       --accent: #38bdf8;
@@ -66,6 +68,7 @@
     --text: #0f172a;
     --text-muted: #64748b;
     --primary: #16a34a;
+    --primary-rgb: 22, 163, 74;
     --primary-hover: #15803d;
     --primary-contrast: #ffffff;
     --accent: #0284c7;
@@ -85,6 +88,7 @@
     --text: #e2e8f0;
     --text-muted: #94a3b8;
     --primary: #22c55e;
+    --primary-rgb: 34, 197, 94;
     --primary-hover: #4ade80;
     --primary-contrast: #052e13;
     --accent: #38bdf8;
@@ -275,7 +279,15 @@
   .muscle-map figcaption { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
   .muscle-map svg { width: 140px; height: auto; overflow: visible; }
   .mm-region { fill: var(--surface); stroke: var(--body-line); stroke-width: 1.4; transition: fill 200ms ease; }
-  .mm-region.worked { fill: var(--primary); }
+  .mm-region.worked-low { fill: rgba(var(--primary-rgb), 0.35); }
+  .mm-region.worked-medium { fill: rgba(var(--primary-rgb), 0.68); }
+  .mm-region.worked-high { fill: rgb(var(--primary-rgb)); }
+  .muscle-legend { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+  .muscle-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .muscle-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid var(--body-line); }
+  .muscle-legend .swatch-low { background: rgba(var(--primary-rgb), 0.35); }
+  .muscle-legend .swatch-medium { background: rgba(var(--primary-rgb), 0.68); }
+  .muscle-legend .swatch-high { background: rgb(var(--primary-rgb)); }
   .mm-static { fill: var(--surface); stroke: var(--body-line); stroke-width: 1.4; }
   .mm-detail { fill: none; stroke: var(--body-line); stroke-width: 1; opacity: .8; pointer-events: none; }
 
@@ -562,6 +574,11 @@
         </figure>
       </div>
       <p class="hint" id="muscle-map-summary">Niciun antrenament bifat azi încă.</p>
+      <div class="muscle-legend">
+        <span><i class="swatch-low"></i> Ușor</span>
+        <span><i class="swatch-medium"></i> Moderat</span>
+        <span><i class="swatch-high"></i> Intens</span>
+      </div>
     </div>
   </section>
 
@@ -1068,22 +1085,47 @@
     hamstrings: 'Ischio', calves: 'Gambe'
   };
 
+  const MUSCLE_LEVEL_RANK = { low: 1, medium: 2, high: 3 };
+  const MUSCLE_LEVEL_LABELS_RO = { low: 'ușor', medium: 'moderat', high: 'intens' };
+
   const MUSCLE_CLASSIFICATION_SYSTEM_PROMPT = `Ești un antrenor expert care analizează descrierea unui
 antrenament (poate fi în română, cu nume de exerciții în engleză) și identifică ce grupe musculare
-majore au fost lucrate.
+majore au fost lucrate, împreună cu nivelul de intensitate/efort pentru fiecare în acest
+antrenament specific.
 
 Grupele valide (folosește EXACT aceste id-uri, în engleză, fără altele):
 chest, back, shoulders, biceps, triceps, forearms, abs, glutes, quads, hamstrings, calves
 
-Răspunde STRICT cu un obiect JSON valid, fără text în plus, fără markdown, în formatul exact:
-{"muscles": ["id1", "id2", ...]}
+Nivele de intensitate (folosește EXACT aceste valori):
+- "high" = mușchi principal/agonist, cel mai solicitat în antrenament
+- "medium" = lucrat semnificativ, dar nu ca mușchi principal
+- "low" = implicat doar ca stabilizator/secundar, efort minim
 
-Include doar grupele clar lucrate de exercițiile descrise. Nu inventa grupe care nu rezultă din
+Răspunde STRICT cu un obiect JSON valid, fără text în plus, fără markdown, în formatul exact:
+{"muscles": [{"id": "chest", "level": "high"}, {"id": "triceps", "level": "medium"}, ...]}
+
+Include doar grupele clar implicate în exercițiile descrise. Nu inventa grupe care nu rezultă din
 antrenament. Nu adăuga alte câmpuri.`;
 
-  function sanitizeMuscleGroups(list) {
+  function sanitizeMuscleLevels(list) {
     if (!Array.isArray(list)) return [];
-    return [...new Set(list)].filter(m => MUSCLE_GROUPS.includes(m));
+    const normalized = list
+      .map(item => {
+        if (typeof item === 'string') return { id: item, level: 'high' };
+        const id = item?.id;
+        const level = MUSCLE_LEVEL_RANK[item?.level] ? item.level : 'high';
+        return { id, level };
+      })
+      .filter(item => MUSCLE_GROUPS.includes(item.id));
+
+    const byId = new Map();
+    normalized.forEach(item => {
+      const existing = byId.get(item.id);
+      if (!existing || MUSCLE_LEVEL_RANK[item.level] > MUSCLE_LEVEL_RANK[existing.level]) {
+        byId.set(item.id, item);
+      }
+    });
+    return [...byId.values()];
   }
 
   async function classifyMuscles(text) {
@@ -1096,11 +1138,17 @@ antrenament. Nu adăuga alte câmpuri.`;
       const match = result.content.match(/\{[\s\S]*\}/);
       if (!match) return [];
       const parsed = JSON.parse(match[0]);
-      return sanitizeMuscleGroups(parsed.muscles);
+      return sanitizeMuscleLevels(parsed.muscles);
     } catch (err) {
       console.warn('Clasificare grupe musculare eșuată:', err.message);
       return [];
     }
+  }
+
+  // Normalizeaza si intrari vechi (array de string-uri, dinainte de nivelele de intensitate)
+  function normalizeMuscleEntry(muscleGroups) {
+    if (!Array.isArray(muscleGroups)) return [];
+    return muscleGroups.map(item => typeof item === 'string' ? { id: item, level: 'high' } : item);
   }
 
   // ============================================================
@@ -1554,10 +1602,13 @@ obiectului JSON.`;
       content.innerHTML = renderMarkdown(entry.content);
       details.appendChild(content);
 
-      if (entry.muscleGroups && entry.muscleGroups.length) {
+      const normalizedMuscles = normalizeMuscleEntry(entry.muscleGroups);
+      if (normalizedMuscles.length) {
         const tags = document.createElement('div');
         tags.className = 'muscle-tags';
-        tags.textContent = `Grupe lucrate: ${entry.muscleGroups.map(m => MUSCLE_LABELS_RO[m] || m).join(', ')}`;
+        tags.textContent = `Grupe lucrate: ${normalizedMuscles
+          .map(m => `${MUSCLE_LABELS_RO[m.id] || m.id} (${MUSCLE_LEVEL_LABELS_RO[m.level] || m.level})`)
+          .join(', ')}`;
         details.appendChild(tags);
       }
 
@@ -1795,17 +1846,28 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
       ? `P: ${Math.round(proteinToday)} / ${targets.proteinTarget} g`
       : `P: ${Math.round(proteinToday)} g`;
 
-    const workedToday = new Set();
-    all.filter(e => e.date === today).forEach(e => (e.muscleGroups || []).forEach(m => workedToday.add(m)));
+    const levelByMuscle = new Map();
+    all.filter(e => e.date === today).forEach(e => {
+      normalizeMuscleEntry(e.muscleGroups).forEach(m => {
+        const existing = levelByMuscle.get(m.id);
+        if (!existing || MUSCLE_LEVEL_RANK[m.level] > MUSCLE_LEVEL_RANK[existing]) {
+          levelByMuscle.set(m.id, m.level);
+        }
+      });
+    });
 
     document.querySelectorAll('#mm-front .mm-region, #mm-back .mm-region').forEach(el => {
       const muscle = el.getAttribute('data-muscle');
-      el.classList.toggle('worked', workedToday.has(muscle));
+      el.classList.remove('worked-low', 'worked-medium', 'worked-high');
+      const level = levelByMuscle.get(muscle);
+      if (level) el.classList.add(`worked-${level}`);
     });
 
     const summary = document.getElementById('muscle-map-summary');
-    if (workedToday.size) {
-      summary.textContent = `Lucrate azi: ${[...workedToday].map(m => MUSCLE_LABELS_RO[m] || m).join(', ')}`;
+    if (levelByMuscle.size) {
+      summary.textContent = `Lucrate azi: ${[...levelByMuscle.entries()]
+        .map(([id, level]) => `${MUSCLE_LABELS_RO[id] || id} (${MUSCLE_LEVEL_LABELS_RO[level] || level})`)
+        .join(', ')}`;
     } else {
       summary.textContent = 'Niciun antrenament bifat azi încă.';
     }
