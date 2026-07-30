@@ -14,6 +14,10 @@ ca să poată fi găzduită gratuit pe GitHub Pages și accesată de pe orice de
   aplicația sigură de distribuit public: fiecare vizitator își pune propria cheie.
 - Tema light/dark (day/night), paleta de culori, stilul cardurilor/butoanelor și designul general
   rămân identice cu aplicația originală (Fitness-App).
+- Suport PWA (instalabil pe ecranul principal, inclusiv iOS): `manifest.webmanifest`, `icon.svg`
+  și `sw.js` (service worker minimal, cache-uiește doar shell-ul static — apelurile către
+  Cerebras/Groq merg mereu live, niciodată din cache). Sunt fișiere statice companion, fără build
+  step și fără server — nu contrazic regula de mai sus.
 
 ## Module (5 taburi, trebuie să încapă pe o linie în navigare)
 
