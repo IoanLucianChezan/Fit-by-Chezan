@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fit-by-chezan-v1';
+const CACHE_NAME = 'fit-by-chezan-v2';
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -15,22 +15,23 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Doar shell-ul aplicatiei e cache-uit; apelurile catre Cerebras/Groq (alt domeniu)
-// merg mereu direct in retea, niciodata din cache.
+// Network-first: mereu incearca sa aduca varianta live de pe retea (cu cache:'no-store',
+// ca sa ocoleasca si eventualul HTTP cache al browserului/CDN-ului). Cache-ul e doar
+// rezerva pentru cand esti offline. Doar shell-ul aplicatiei e cache-uit; apelurile catre
+// Cerebras/Groq (alt domeniu) merg mereu direct in retea, niciodata din cache.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin || event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request).then((response) => {
+    fetch(event.request, { cache: 'no-store' })
+      .then((response) => {
         if (response && response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => cached);
-      return cached || network;
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
