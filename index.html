@@ -356,6 +356,44 @@
     100% { transform: translateY(0); opacity: 1; }
   }
 
+  .lightning-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+  .lightning-overlay.show { opacity: 1; }
+  .lightning-overlay svg { width: 100%; height: 100%; }
+  .lightning-bolt-path {
+    fill: none;
+    stroke: #fdfdff;
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,.95)) drop-shadow(0 0 26px rgba(148,197,253,.85));
+    stroke-dasharray: 2200;
+    stroke-dashoffset: 2200;
+  }
+  .lightning-overlay.show .lightning-bolt-path {
+    animation: lightning-draw 650ms ease-out forwards, lightning-flicker 900ms ease-out forwards;
+  }
+  @keyframes lightning-draw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes lightning-flicker {
+    0% { opacity: 0; }
+    8% { opacity: 1; }
+    18% { opacity: .35; }
+    28% { opacity: 1; }
+    45% { opacity: .4; }
+    60% { opacity: 1; }
+    100% { opacity: .9; }
+  }
+
   .calendar { margin-bottom: 12px; max-width: 320px; }
   .split-layout { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
   .history-card { flex: 1 1 340px; min-width: 0; }
@@ -450,7 +488,25 @@
   .target-date-hint { font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 6px 10px; border-radius: var(--radius); margin-bottom: 12px; }
 
   .stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .stat-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+  .stat-tile { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+  .stat-tile.goal-met { border-color: var(--primary); }
+  .stat-tile.goal-met::after {
+    content: '✓';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
   .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
   .stat-value { font-size: 28px; font-weight: 800; color: var(--text); }
   .stat-value-small { font-size: 15px; font-weight: 700; }
@@ -1179,6 +1235,22 @@
       setTimeout(() => el.remove(), 300);
     }, 1800);
   }
+
+  function showLightningStrike() {
+    const wrap = document.createElement('div');
+    wrap.className = 'lightning-overlay';
+    wrap.innerHTML = `<svg viewBox="0 0 200 800" preserveAspectRatio="xMidYMid meet">
+      <path class="lightning-bolt-path" d="M100,0 L72,140 L112,140 L58,300 L118,300 L68,470 L128,470 L82,630 L120,630 L96,800" />
+    </svg>`;
+    document.body.appendChild(wrap);
+    requestAnimationFrame(() => wrap.classList.add('show'));
+    setTimeout(() => {
+      wrap.classList.remove('show');
+      setTimeout(() => wrap.remove(), 400);
+    }, 1400);
+  }
+
+  showLightningStrike();
   showSplashMessage();
 
   // ============================================================
@@ -2212,8 +2284,8 @@ clar, fără introduceri sau explicații.`;
     const hero = lsGet(HERO_HISTORY_KEY, []);
     const workout = lsGet(WORKOUT_LOG_KEY, []);
     const manual = lsGet(MANUAL_HISTORY_KEY, []);
-    const allWorkouts = [...easy, ...hero, ...workout, ...manual];
     const runs = lsGet(RUNS_KEY, []);
+    const allWorkouts = [...easy, ...hero, ...workout, ...manual, ...runs];
 
     const workoutsPerMonth = new Array(12).fill(0);
     allWorkouts.forEach(e => {
@@ -2255,14 +2327,17 @@ clar, fără introduceri sau explicații.`;
     const hero = lsGet(HERO_HISTORY_KEY, []);
     const workout = lsGet(WORKOUT_LOG_KEY, []);
     const manual = lsGet(MANUAL_HISTORY_KEY, []);
-    const all = [...easy, ...hero, ...workout, ...manual];
+    const runs = lsGet(RUNS_KEY, []);
+    const all = [...easy, ...hero, ...workout, ...manual, ...runs];
 
     const workoutsToday = all.filter(e => e.date === today).length;
     const workoutsMonth = all.filter(e => e.date.startsWith(monthPrefix)).length;
     document.getElementById('stat-workouts-today').textContent = String(workoutsToday);
     document.getElementById('stat-workouts-month').textContent = String(workoutsMonth);
 
-    const runs = lsGet(RUNS_KEY, []);
+    const workoutsTodayTile = document.getElementById('stat-workouts-today').closest('.stat-tile');
+    if (workoutsTodayTile) workoutsTodayTile.classList.toggle('goal-met', workoutsToday >= 1);
+
     const kmMonth = runs.filter(r => r.date.startsWith(monthPrefix)).reduce((sum, r) => sum + (Number(r.km) || 0), 0);
     document.getElementById('stat-run-km-month').textContent = `${kmMonth.toFixed(1)} km`;
 
