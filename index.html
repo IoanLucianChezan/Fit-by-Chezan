@@ -323,6 +323,39 @@
   }
   .celebration-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
+  .splash-toast {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+    padding: 14px 30px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    transition: opacity 250ms ease, transform 250ms ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .splash-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .splash-bolt {
+    display: inline-block;
+    font-size: 26px;
+    animation: splash-bolt-fall 600ms cubic-bezier(.3, 1.4, .5, 1);
+  }
+  @keyframes splash-bolt-fall {
+    0% { transform: translateY(-60px); opacity: 0; }
+    60% { transform: translateY(6px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
   .calendar { margin-bottom: 12px; max-width: 320px; }
   .split-layout { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
   .history-card { flex: 1 1 340px; min-width: 0; }
@@ -429,8 +462,8 @@
   .stats-bar-workout:hover { fill: var(--primary-hover); }
   .stats-bar-km { fill: var(--accent); }
   .stats-bar-km:hover { opacity: 0.8; }
-  .stats-chart-label { font-size: 11px; fill: var(--text-muted); }
-  .stats-chart-value { font-size: 15px; fill: var(--text); font-weight: 700; }
+  .stats-chart-label { font-size: 13px; fill: var(--text-muted); }
+  .stats-chart-value { font-size: 17px; fill: var(--text); font-weight: 700; }
   .stats-year-field { max-width: 160px; }
 
   .config-subsection { margin-bottom: 16px; }
@@ -469,6 +502,7 @@
   <div class="header-row">
     <p>No rest days. RX is earned, not given. Stronger every day.</p>
     <div class="header-actions">
+      <button type="button" class="settings-shortcut active" data-tab="home">🏠 Home</button>
       <button type="button" class="settings-shortcut" data-tab="settings">⚙️ Setări</button>
       <div class="theme-toggle" id="theme-toggle">
         <button type="button" data-theme-choice="light" title="Mod luminos">☀️</button>
@@ -478,7 +512,6 @@
   </div>
 
   <nav id="tabs">
-    <button data-tab="home" class="active">Home</button>
     <button data-tab="workout">Workout</button>
     <button data-tab="nutrition">Nutriție</button>
     <button data-tab="easy-workout">Easy WOD</button>
@@ -866,6 +899,16 @@
         <label for="stats-year-select">An</label>
         <select id="stats-year-select"></select>
       </div>
+      <div class="stat-tiles" style="margin-top:12px; margin-bottom:0;">
+        <div class="stat-tile">
+          <div class="stat-label">Total antrenamente (an)</div>
+          <div class="stat-value" id="stats-workouts-total">–</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-label">Total km alergați (an)</div>
+          <div class="stat-value" id="stats-km-total">–</div>
+        </div>
+      </div>
     </div>
 
     <div class="card">
@@ -1124,6 +1167,19 @@
       setTimeout(() => el.remove(), 300);
     }, 1600);
   }
+
+  function showSplashMessage() {
+    const el = document.createElement('div');
+    el.className = 'splash-toast';
+    el.innerHTML = '<span class="splash-bolt">⚡</span><span>No rest days</span>';
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => {
+      el.classList.remove('show');
+      setTimeout(() => el.remove(), 300);
+    }, 1800);
+  }
+  showSplashMessage();
 
   // ============================================================
   // Client AI: Cerebras + Groq cu fallback (apel direct din browser)
@@ -2117,7 +2173,7 @@ clar, fără introduceri sau explicații.`;
   const MONTH_SHORT_RO = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Noi', 'Dec'];
 
   function buildBarChart(values, labels, barClass, formatFn) {
-    const width = 780, height = 220, baseline = 190, topPad = 34;
+    const width = 780, height = 240, baseline = 200, topPad = 40;
     const slot = width / values.length;
     const barWidth = Math.min(34, slot * 0.6);
     const maxVal = Math.max(1, ...values);
@@ -2129,9 +2185,9 @@ clar, fără introduceri sau explicații.`;
       const y = baseline - h;
       svg += `<rect class="stats-bar ${barClass}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${h.toFixed(1)}" rx="4"><title>${escapeHtml(labels[i])}: ${escapeHtml(formatFn(val))}</title></rect>`;
       if (val > 0) {
-        svg += `<text class="stats-chart-value" x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 10).toFixed(1)}" text-anchor="middle">${escapeHtml(formatFn(val))}</text>`;
+        svg += `<text class="stats-chart-value" x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 12).toFixed(1)}" text-anchor="middle">${escapeHtml(formatFn(val))}</text>`;
       }
-      svg += `<text class="stats-chart-label" x="${(x + barWidth / 2).toFixed(1)}" y="${(baseline + 16).toFixed(1)}" text-anchor="middle">${escapeHtml(labels[i])}</text>`;
+      svg += `<text class="stats-chart-label" x="${(x + barWidth / 2).toFixed(1)}" y="${(baseline + 20).toFixed(1)}" text-anchor="middle">${escapeHtml(labels[i])}</text>`;
     });
     svg += `</svg>`;
     return svg;
@@ -2177,6 +2233,11 @@ clar, fără introduceri sau explicații.`;
 
     document.getElementById('stats-workouts-chart').innerHTML = buildBarChart(workoutsPerMonth, MONTH_SHORT_RO, 'stats-bar-workout', v => String(v));
     document.getElementById('stats-km-chart').innerHTML = buildBarChart(kmPerMonth, MONTH_SHORT_RO, 'stats-bar-km', v => v.toFixed(1));
+
+    const workoutsTotal = workoutsPerMonth.reduce((a, b) => a + b, 0);
+    const kmTotal = kmPerMonth.reduce((a, b) => a + b, 0);
+    document.getElementById('stats-workouts-total').textContent = String(workoutsTotal);
+    document.getElementById('stats-km-total').textContent = `${kmTotal.toFixed(1)} km`;
   }
 
   populateStatsYearSelect();
