@@ -368,30 +368,60 @@
   }
   .lightning-overlay.show { opacity: 1; }
   .lightning-overlay svg { width: 100%; height: 100%; }
+  .lightning-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #eaf2ff;
+    opacity: 0;
+    mix-blend-mode: screen;
+  }
+  .lightning-overlay.show::before {
+    animation: lightning-flash 1000ms ease-out forwards;
+  }
   .lightning-bolt-path {
     fill: none;
     stroke: #fdfdff;
-    stroke-width: 5;
     stroke-linecap: round;
     stroke-linejoin: round;
-    filter: drop-shadow(0 0 10px rgba(255,255,255,.95)) drop-shadow(0 0 26px rgba(148,197,253,.85));
-    stroke-dasharray: 2200;
-    stroke-dashoffset: 2200;
+    stroke-dasharray: 2400;
+    stroke-dashoffset: 2400;
   }
-  .lightning-overlay.show .lightning-bolt-path {
-    animation: lightning-draw 650ms ease-out forwards, lightning-flicker 900ms ease-out forwards;
+  .lightning-main {
+    stroke-width: 4.5;
+    filter: drop-shadow(0 0 8px rgba(255,255,255,.95)) drop-shadow(0 0 22px rgba(148,197,253,.85)) drop-shadow(0 0 44px rgba(148,197,253,.5));
+  }
+  .lightning-branch {
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,.9)) drop-shadow(0 0 14px rgba(148,197,253,.75));
+  }
+  .lightning-overlay.show .lightning-main {
+    animation: lightning-draw 550ms ease-out forwards, lightning-flicker 950ms ease-out forwards;
+  }
+  .lightning-overlay.show .lightning-branch-1 {
+    animation: lightning-draw 200ms ease-out 150ms forwards, lightning-flicker 700ms ease-out 150ms forwards;
+  }
+  .lightning-overlay.show .lightning-branch-2 {
+    animation: lightning-draw 200ms ease-out 340ms forwards, lightning-flicker 700ms ease-out 340ms forwards;
   }
   @keyframes lightning-draw {
     to { stroke-dashoffset: 0; }
   }
   @keyframes lightning-flicker {
     0% { opacity: 0; }
-    8% { opacity: 1; }
-    18% { opacity: .35; }
-    28% { opacity: 1; }
-    45% { opacity: .4; }
-    60% { opacity: 1; }
-    100% { opacity: .9; }
+    10% { opacity: 1; }
+    20% { opacity: .3; }
+    32% { opacity: 1; }
+    48% { opacity: .35; }
+    62% { opacity: 1; }
+    100% { opacity: .85; }
+  }
+  @keyframes lightning-flash {
+    0%, 48% { opacity: 0; }
+    54% { opacity: .35; }
+    60% { opacity: .05; }
+    68% { opacity: .22; }
+    100% { opacity: 0; }
   }
 
   .calendar { margin-bottom: 12px; max-width: 320px; }
@@ -1240,7 +1270,9 @@
     const wrap = document.createElement('div');
     wrap.className = 'lightning-overlay';
     wrap.innerHTML = `<svg viewBox="0 0 200 800" preserveAspectRatio="xMidYMid meet">
-      <path class="lightning-bolt-path" d="M100,0 L72,140 L112,140 L58,300 L118,300 L68,470 L128,470 L82,630 L120,630 L96,800" />
+      <path class="lightning-bolt-path lightning-main" d="M104,0 L78,110 L100,112 L54,240 L92,236 L46,380 L86,374 L38,520 L98,512 L58,650 L112,644 L86,800" />
+      <path class="lightning-bolt-path lightning-branch lightning-branch-1" d="M92,236 L138,296 L122,346" />
+      <path class="lightning-bolt-path lightning-branch lightning-branch-2" d="M98,512 L52,566 L68,608" />
     </svg>`;
     document.body.appendChild(wrap);
     requestAnimationFrame(() => wrap.classList.add('show'));
