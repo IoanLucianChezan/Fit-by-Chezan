@@ -356,71 +356,24 @@
     100% { transform: translateY(0); opacity: 1; }
   }
 
-  .lightning-overlay {
+  .screen-flash-overlay {
     position: fixed;
     inset: 0;
     z-index: 999;
     pointer-events: none;
-    display: flex;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 400ms ease;
-  }
-  .lightning-overlay.show { opacity: 1; }
-  .lightning-overlay svg { width: 100%; height: 100%; }
-  .lightning-overlay::before {
-    content: '';
-    position: absolute;
-    inset: 0;
     background: #eaf2ff;
     opacity: 0;
     mix-blend-mode: screen;
   }
-  .lightning-overlay.show::before {
-    animation: lightning-flash 1000ms ease-out forwards;
+  .screen-flash-overlay.show {
+    animation: screen-flash-anim 700ms ease-out forwards;
   }
-  .lightning-bolt-path {
-    fill: none;
-    stroke: #fdfdff;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 2400;
-    stroke-dashoffset: 2400;
-  }
-  .lightning-main {
-    stroke-width: 4.5;
-    filter: drop-shadow(0 0 8px rgba(255,255,255,.95)) drop-shadow(0 0 22px rgba(148,197,253,.85)) drop-shadow(0 0 44px rgba(148,197,253,.5));
-  }
-  .lightning-branch {
-    stroke-width: 2.5;
-    filter: drop-shadow(0 0 6px rgba(255,255,255,.9)) drop-shadow(0 0 14px rgba(148,197,253,.75));
-  }
-  .lightning-overlay.show .lightning-main {
-    animation: lightning-draw 550ms ease-out forwards, lightning-flicker 950ms ease-out forwards;
-  }
-  .lightning-overlay.show .lightning-branch-1 {
-    animation: lightning-draw 200ms ease-out 150ms forwards, lightning-flicker 700ms ease-out 150ms forwards;
-  }
-  .lightning-overlay.show .lightning-branch-2 {
-    animation: lightning-draw 200ms ease-out 340ms forwards, lightning-flicker 700ms ease-out 340ms forwards;
-  }
-  @keyframes lightning-draw {
-    to { stroke-dashoffset: 0; }
-  }
-  @keyframes lightning-flicker {
+  @keyframes screen-flash-anim {
     0% { opacity: 0; }
-    10% { opacity: 1; }
-    20% { opacity: .3; }
-    32% { opacity: 1; }
-    48% { opacity: .35; }
-    62% { opacity: 1; }
-    100% { opacity: .85; }
-  }
-  @keyframes lightning-flash {
-    0%, 48% { opacity: 0; }
-    54% { opacity: .35; }
-    60% { opacity: .05; }
-    68% { opacity: .22; }
+    8% { opacity: .38; }
+    18% { opacity: .05; }
+    28% { opacity: .28; }
+    45% { opacity: 0; }
     100% { opacity: 0; }
   }
 
@@ -1266,23 +1219,15 @@
     }, 1800);
   }
 
-  function showLightningStrike() {
-    const wrap = document.createElement('div');
-    wrap.className = 'lightning-overlay';
-    wrap.innerHTML = `<svg viewBox="0 0 200 800" preserveAspectRatio="xMidYMid meet">
-      <path class="lightning-bolt-path lightning-main" d="M104,0 L78,110 L100,112 L54,240 L92,236 L46,380 L86,374 L38,520 L98,512 L58,650 L112,644 L86,800" />
-      <path class="lightning-bolt-path lightning-branch lightning-branch-1" d="M92,236 L138,296 L122,346" />
-      <path class="lightning-bolt-path lightning-branch lightning-branch-2" d="M98,512 L52,566 L68,608" />
-    </svg>`;
-    document.body.appendChild(wrap);
-    requestAnimationFrame(() => wrap.classList.add('show'));
-    setTimeout(() => {
-      wrap.classList.remove('show');
-      setTimeout(() => wrap.remove(), 400);
-    }, 1400);
+  function showScreenFlash() {
+    const el = document.createElement('div');
+    el.className = 'screen-flash-overlay';
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => el.remove(), 800);
   }
 
-  showLightningStrike();
+  showScreenFlash();
   showSplashMessage();
 
   // ============================================================
@@ -1579,6 +1524,7 @@ Generează antrenamentul de azi.`;
     log.unshift(entry);
     lsSet(WORKOUT_LOG_KEY, log);
     status.textContent = 'Salvat!';
+    showScreenFlash();
     showCelebration();
     document.getElementById('workout-finish-wrap').style.display = 'none';
     renderWodHistory('workout-history', WORKOUT_LOG_KEY, e => `${e.day}, ${e.date}`);
@@ -1989,6 +1935,7 @@ Generează un antrenament bodyweight nou, pe saltea, de 15-30 de minute, cu un f
     history.unshift(entry);
     lsSet(EASY_HISTORY_KEY, history);
     status.textContent = 'Salvat!';
+    showScreenFlash();
     showCelebration();
     document.getElementById('easy-finish-wrap').style.display = 'none';
     renderWodHistory('easy-history', EASY_HISTORY_KEY, e => `${e.day}, ${e.date}`);
@@ -2091,6 +2038,7 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
     history.unshift(entry);
     lsSet(HERO_HISTORY_KEY, history);
     status.textContent = 'Salvat!';
+    showScreenFlash();
     showCelebration();
     document.getElementById('hero-finish-wrap').style.display = 'none';
     renderWodHistory('hero-history', HERO_HISTORY_KEY, e => e.heroName || `${e.day}, ${e.date}`);
@@ -2202,6 +2150,7 @@ clar, fără introduceri sau explicații.`;
     history.unshift(entry);
     lsSet(MANUAL_HISTORY_KEY, history);
     status.textContent = 'Salvat!';
+    showScreenFlash();
     showCelebration();
     textarea.value = '';
     renderWodHistory('manual-workout-history', MANUAL_HISTORY_KEY, e => `${e.day}, ${e.date}`);
@@ -2262,6 +2211,7 @@ clar, fără introduceri sau explicații.`;
     kmInput.value = '';
     paceInput.value = '';
     status.textContent = 'Salvat!';
+    showScreenFlash();
     showCelebration();
     renderRunHistory();
     renderHome();
