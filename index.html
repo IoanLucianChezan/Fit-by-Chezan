@@ -926,62 +926,6 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2>Antrenament introducere manuală</h2>
-      <p class="hint">Scrie liber un antrenament, transcrie o poză, sau notează o alergare.</p>
-
-      <div class="workout-actions">
-        <button type="button" id="manual-open-btn" class="btn-big">📝 Adaugă antrenament manual</button>
-      </div>
-
-      <div id="manual-entry-panel" style="display:none; margin-top:16px;">
-        <button type="button" id="manual-close-btn" class="settings-shortcut">← Înapoi</button>
-        <div class="mode-toggle" style="margin-top:10px;">
-          <button type="button" id="manual-mode-workout" class="mode-toggle-btn active">🏋️ Antrenament</button>
-          <button type="button" id="manual-mode-run" class="mode-toggle-btn">🏃 Alergare</button>
-        </div>
-
-        <div id="manual-workout-panel">
-          <p class="hint">Scrie liber antrenamentul, sau încarcă/lipește o poză ca AI să o transcrie automat în text.</p>
-
-          <div class="paste-zone" id="manual-paste-zone" tabindex="0">📋 Apasă aici și dă Paste (Ctrl+V) cu o poză a antrenamentului</div>
-          <div class="actions-row" style="display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap;">
-            <input type="file" id="manual-photo-input" accept="image/*" style="display:none;">
-            <button type="button" id="manual-photo-btn">📷 Încarcă poză</button>
-            <span id="manual-photo-status"></span>
-          </div>
-
-          <textarea id="manual-workout-text" rows="10" style="width:100%; margin-top:14px; font-family:inherit;" placeholder="Descrie antrenamentul (exerciții, seturi, repetări, greutăți)..."></textarea>
-
-          <div class="workout-actions" style="margin-top:16px;">
-            <button type="button" id="manual-workout-finish-btn" class="btn-big btn-finish">✓ Marchează ca finalizat</button>
-            <span id="manual-workout-finish-status"></span>
-          </div>
-        </div>
-
-        <div id="manual-run-panel" style="display:none;">
-          <p class="hint">Introdu distanța și pace-ul pentru alergarea de azi.</p>
-          <div class="settings-field">
-            <label for="manual-run-km">Distanță (km)</label>
-            <input type="number" id="manual-run-km" step="0.01" min="0">
-          </div>
-          <div class="settings-field">
-            <label for="manual-run-pace">Pace (min/km)</label>
-            <input type="text" id="manual-run-pace" placeholder="ex: 5:30">
-          </div>
-          <div class="workout-actions">
-            <button type="button" id="manual-run-save-btn" class="btn-big btn-finish">✓ Salvează alergarea</button>
-            <span id="manual-run-save-status"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Istoric</h2>
-      <p class="hint">Toate antrenamentele finalizate din acest tab (Antrenament, Bodybuilding personalizat, Easy WOD, Hero WOD, introducere manuală, alergări), într-un singur istoric.</p>
-      <div id="custom-workout-history"></div>
-    </div>
   </section>
 
   <!-- ================= PROGRAM CROSSFIT ================= -->
@@ -1432,10 +1376,6 @@
         <label for="set-groq-model-fallback">Model Groq (rezervă)</label>
         <input type="text" id="set-groq-model-fallback" placeholder="openai/gpt-oss-120b">
       </div>
-      <div class="settings-field">
-        <label for="set-groq-vision-model">Model Groq (vision, pentru poze la Manual)</label>
-        <input type="text" id="set-groq-vision-model" placeholder="qwen/qwen3.6-27b">
-      </div>
     </div>
 
     <div class="workout-actions" style="margin-top:16px;">
@@ -1614,7 +1554,7 @@
   // ============================================================
 
   function youtubeSearchUrl(exerciseName) {
-    return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' tutorial')}`;
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' fitness exercise tutorial')}`;
   }
 
   function attachExerciseVideoButtons(container, exerciseNames) {
@@ -1765,14 +1705,13 @@
     geminiModel: 'gemini-2.5-flash',
     geminiModelFallback: 'gemini-2.5-flash-lite',
     groqModel: 'llama-3.3-70b-versatile',
-    groqModelFallback: 'openai/gpt-oss-120b',
-    groqVisionModel: 'qwen/qwen3.6-27b'
+    groqModelFallback: 'openai/gpt-oss-120b'
   };
 
   function loadAiSettings() {
     return lsGet(SETTINGS_KEY, {
       geminiKey: '', geminiModel: '', geminiModelFallback: '',
-      groqKey: '', groqModel: '', groqModelFallback: '', groqVisionModel: ''
+      groqKey: '', groqModel: '', groqModelFallback: ''
     });
   }
   function saveAiSettings(s) { lsSet(SETTINGS_KEY, s); }
@@ -1839,14 +1778,6 @@
       }
     }
     throw new Error(`Toate încercările (Gemini + Groq) au eșuat. — ${errors.join(' || ')}`);
-  }
-
-  async function visionTranscribeServer(messages) {
-    const s = loadAiSettings();
-    if (!s.groqKey) throw new Error('Configurează cheia Groq în Setări (necesară pentru transcrierea din poză).');
-    const visionModel = getModelOrDefault(s.groqVisionModel, 'groqVisionModel');
-    const content = await callChatCompletionClient('https://api.groq.com/openai/v1/chat/completions', s.groqKey, visionModel, messages);
-    return { content: stripThinking(content) };
   }
 
   // ============================================================
@@ -3310,90 +3241,7 @@ Generează antrenamentul Hyrox/Spartan de azi.`;
     });
   }
 
-  // Istoric unificat pentru tab-ul Custom Workout: combină toate sursele
-  // (Antrenament/Bodybuilding personalizat/Easy WOD/Hero WOD/introducere manuală/alergări)
-  // într-o singură listă, sortată descrescător.
-  function renderMergedWorkoutHistory() {
-    const workoutKeys = [WORKOUT_LOG_KEY, BB_CUSTOM_HISTORY_KEY, EASY_HISTORY_KEY, HERO_HISTORY_KEY, MANUAL_HISTORY_KEY, HIIT_HISTORY_KEY, CHALLENGE_HISTORY_KEY, HYROX_HISTORY_KEY];
-    const container = document.getElementById('custom-workout-history');
-    const merged = [];
-    workoutKeys.forEach(key => {
-      lsGet(key, []).forEach(entry => merged.push({ ...entry, _sourceKey: key, _kind: 'workout' }));
-    });
-    lsGet(RUNS_KEY, []).forEach(entry => merged.push({ ...entry, _sourceKey: RUNS_KEY, _kind: 'run' }));
-    merged.sort((a, b) => new Date(b.generatedAt || b.savedAt) - new Date(a.generatedAt || a.savedAt));
-
-    container.innerHTML = '';
-    if (!merged.length) {
-      container.innerHTML = '<p class="hint">Niciun antrenament finalizat încă.</p>';
-      return;
-    }
-    merged.forEach(entry => {
-      if (entry._kind === 'run') {
-        const item = document.createElement('div');
-        item.className = 'meal-history-item';
-        item.innerHTML = `
-          <div>🏃 ${escapeHtml(entry.date)} — ${entry.km} km${entry.pace ? ` @ ${escapeHtml(entry.pace)}/km` : ''}</div>
-          <div class="history-actions"><button type="button" class="delete-btn">Șterge</button></div>
-        `;
-        item.querySelector('.delete-btn').addEventListener('click', () => {
-          if (!confirm('Ștergi această alergare?')) return;
-          const remaining = lsGet(RUNS_KEY, []).filter(r => r.savedAt !== entry.savedAt);
-          lsSet(RUNS_KEY, remaining);
-          renderMergedWorkoutHistory();
-          renderHome();
-        });
-        container.appendChild(item);
-        return;
-      }
-
-      const details = document.createElement('details');
-      details.className = 'history-item';
-      const summary = document.createElement('summary');
-
-      const titleSpan = document.createElement('span');
-      titleSpan.className = 'history-item-title';
-      titleSpan.textContent = entry.heroName || `${entry.day}, ${entry.date}`;
-      summary.appendChild(titleSpan);
-
-      const content = document.createElement('div');
-      content.className = 'workout-result';
-      content.innerHTML = renderMarkdown(entry.content);
-
-      attachHistoryItemControls(summary, content, entry, {
-        onSaveContent: (newContent) => {
-          const all = lsGet(entry._sourceKey, []);
-          const found = all.find(e => e.generatedAt === entry.generatedAt);
-          if (found) {
-            found.content = newContent;
-            entry.content = newContent;
-            lsSet(entry._sourceKey, all);
-          }
-          renderMergedWorkoutHistory();
-        },
-        onDelete: () => {
-          const remaining = lsGet(entry._sourceKey, []).filter(e => e.generatedAt !== entry.generatedAt);
-          lsSet(entry._sourceKey, remaining);
-          renderMergedWorkoutHistory();
-          renderHome();
-        }
-      });
-      details.appendChild(summary);
-      details.appendChild(content);
-
-      const normalizedMuscles = normalizeMuscleEntry(entry.muscleGroups);
-      if (normalizedMuscles.length) {
-        const tags = document.createElement('div');
-        tags.className = 'muscle-tags';
-        tags.textContent = `Grupe lucrate: ${normalizedMuscles
-          .map(m => `${MUSCLE_LABELS_RO[m.id] || m.id} (${MUSCLE_LEVEL_LABELS_RO[m.level] || m.level})`)
-          .join(', ')}`;
-        details.appendChild(tags);
-      }
-
-      container.appendChild(details);
-    });
-  }
+  function renderMergedWorkoutHistory() {}
 
   // ============================================================
   // Antrenament Bodybuilding (personalizat) — un singur antrenament,
@@ -3726,161 +3574,6 @@ Generează un Hero WOD sau Girl/benchmark WOD cunoscut.${avoidClause}`;
       }
     }
   });
-
-  // ============================================================
-  // 6. Adaugă manual — antrenament (text/poză) + alergare
-  // ============================================================
-
-  const MANUAL_HISTORY_KEY = 'fw_manual_history';
-  const RUNS_KEY = 'fw_runs';
-  // alergarea lucrează mereu aceleași grupe, deci nu are nevoie de clasificare AI
-  const RUN_MUSCLE_GROUPS = [
-    { id: 'quads', level: 'high' },
-    { id: 'calves', level: 'high' },
-    { id: 'hamstrings', level: 'medium' },
-    { id: 'glutes', level: 'medium' }
-  ];
-
-  document.getElementById('manual-open-btn').addEventListener('click', () => {
-    document.getElementById('manual-entry-panel').style.display = '';
-    document.getElementById('manual-open-btn').style.display = 'none';
-  });
-  function collapseManualEntryPanel() {
-    document.getElementById('manual-entry-panel').style.display = 'none';
-    document.getElementById('manual-open-btn').style.display = '';
-  }
-  document.getElementById('manual-close-btn').addEventListener('click', collapseManualEntryPanel);
-
-  document.getElementById('manual-mode-workout').addEventListener('click', () => {
-    document.getElementById('manual-mode-workout').classList.add('active');
-    document.getElementById('manual-mode-run').classList.remove('active');
-    document.getElementById('manual-workout-panel').style.display = '';
-    document.getElementById('manual-run-panel').style.display = 'none';
-  });
-  document.getElementById('manual-mode-run').addEventListener('click', () => {
-    document.getElementById('manual-mode-run').classList.add('active');
-    document.getElementById('manual-mode-workout').classList.remove('active');
-    document.getElementById('manual-run-panel').style.display = '';
-    document.getElementById('manual-workout-panel').style.display = 'none';
-  });
-
-  const IMAGE_WORKOUT_TRANSCRIBE_SYSTEM_PROMPT = `Ești un asistent care extrage text despre un
-antrenament dintr-o poză sau captură de ecran (poate fi dintr-o aplicație de fitness, un
-tabel/whiteboard din sală, sau scris de mână). Transcrie tot ce ține de antrenament: exerciții,
-seturi, repetări, greutăți/procente, timpi, distanțe, note - orice e vizibil și relevant. Nu
-inventa informații care nu apar în imagine. Răspunde direct cu textul antrenamentului, formatat
-clar, fără introduceri sau explicații.`;
-
-  async function handleManualPhoto(file) {
-    const status = document.getElementById('manual-photo-status');
-    const btn = document.getElementById('manual-photo-btn');
-    if (!file || !file.type.startsWith('image/')) return;
-    btn.disabled = true;
-    status.textContent = '';
-    try {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error('citirea imaginii a eșuat'));
-        reader.readAsDataURL(file);
-      });
-      const messages = [
-        { role: 'system', content: IMAGE_WORKOUT_TRANSCRIBE_SYSTEM_PROMPT },
-        { role: 'user', content: [
-            { type: 'text', text: 'Extrage antrenamentul din această imagine.' },
-            { type: 'image_url', image_url: { url: dataUrl } }
-          ] }
-      ];
-      const { content } = await visionTranscribeServer(messages);
-      document.getElementById('manual-workout-text').value = stripThinking(content);
-    } catch (err) {
-      status.textContent = `Eroare: ${err.message}`;
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  document.getElementById('manual-photo-btn').addEventListener('click', () => {
-    document.getElementById('manual-photo-input').click();
-  });
-  document.getElementById('manual-photo-input').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (file) handleManualPhoto(file);
-  });
-  document.getElementById('manual-paste-zone').addEventListener('paste', (e) => {
-    const items = e.clipboardData?.items || [];
-    for (const item of items) {
-      if (item.type && item.type.startsWith('image/')) {
-        e.preventDefault();
-        handleManualPhoto(item.getAsFile());
-        break;
-      }
-    }
-  });
-
-  document.getElementById('manual-workout-finish-btn').addEventListener('click', async () => {
-    const status = document.getElementById('manual-workout-finish-status');
-    const textarea = document.getElementById('manual-workout-text');
-    const text = textarea.value.trim();
-    if (!text) { status.textContent = 'Scrie sau încarcă un antrenament mai întâi.'; return; }
-
-    const now = new Date();
-    const entry = { day: RO_DAYS[now.getDay()], date: localDateStr(now), content: text, generatedAt: now.toISOString(), muscleGroups: [] };
-    const history = lsGet(MANUAL_HISTORY_KEY, []);
-    history.unshift(entry);
-    lsSet(MANUAL_HISTORY_KEY, history);
-    status.textContent = 'Salvat!';
-    showScreenFlash();
-    showCelebration();
-    textarea.value = '';
-    collapseManualEntryPanel();
-    renderMergedWorkoutHistory();
-    renderHome();
-    setTimeout(() => { status.textContent = ''; }, 2000);
-
-    const muscles = await classifyMuscles(entry.content);
-    if (muscles.length) {
-      const all = lsGet(MANUAL_HISTORY_KEY, []);
-      const found = all.find(e => e.generatedAt === entry.generatedAt);
-      if (found) {
-        found.muscleGroups = muscles;
-        lsSet(MANUAL_HISTORY_KEY, all);
-        renderMergedWorkoutHistory();
-        renderHome();
-      }
-    }
-  });
-
-  document.getElementById('manual-run-save-btn').addEventListener('click', () => {
-    const status = document.getElementById('manual-run-save-status');
-    const kmInput = document.getElementById('manual-run-km');
-    const paceInput = document.getElementById('manual-run-pace');
-    const km = Number(kmInput.value);
-    if (!km || km <= 0) { status.textContent = 'Introdu o distanță validă (km).'; return; }
-
-    const entry = {
-      date: todayStr(),
-      km,
-      pace: paceInput.value.trim(),
-      savedAt: new Date().toISOString(),
-      muscleGroups: RUN_MUSCLE_GROUPS
-    };
-    const runs = lsGet(RUNS_KEY, []);
-    runs.unshift(entry);
-    lsSet(RUNS_KEY, runs);
-    kmInput.value = '';
-    paceInput.value = '';
-    status.textContent = 'Salvat!';
-    showScreenFlash();
-    showCelebration();
-    collapseManualEntryPanel();
-    renderMergedWorkoutHistory();
-    renderHome();
-    setTimeout(() => { status.textContent = ''; }, 2000);
-  });
-
-  renderMergedWorkoutHistory();
 
   // ============================================================
   // Program Crossfit — generat AI pe săptămâni, antrenamentul zilnic
@@ -4997,7 +4690,6 @@ Generează antrenamentul concret de azi.`;
     document.getElementById('set-groq-key').value = s.groqKey || '';
     document.getElementById('set-groq-model').value = s.groqModel || '';
     document.getElementById('set-groq-model-fallback').value = s.groqModelFallback || '';
-    document.getElementById('set-groq-vision-model').value = s.groqVisionModel || '';
   }
 
   document.getElementById('save-settings').addEventListener('click', () => {
@@ -5008,8 +4700,7 @@ Generează antrenamentul concret de azi.`;
       geminiModelFallback: document.getElementById('set-gemini-model-fallback').value.trim(),
       groqKey: document.getElementById('set-groq-key').value.trim(),
       groqModel: document.getElementById('set-groq-model').value.trim(),
-      groqModelFallback: document.getElementById('set-groq-model-fallback').value.trim(),
-      groqVisionModel: document.getElementById('set-groq-vision-model').value.trim()
+      groqModelFallback: document.getElementById('set-groq-model-fallback').value.trim()
     });
     status.textContent = 'Salvat.';
     setTimeout(() => { status.textContent = ''; }, 2000);
