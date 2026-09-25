@@ -349,6 +349,13 @@
   .history-actions button { padding: 9px 14px; font-size: 13px; box-shadow: none; min-height: 36px; }
   .delete-btn { background: var(--danger-soft); color: var(--danger); padding: 9px 14px; font-size: 13px; box-shadow: none; flex-shrink: 0; min-height: 36px; }
   .delete-btn:hover { background: var(--danger); color: #fff; transform: translateY(-1px); }
+  .exercise-video-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; margin-left: 8px; padding: 0;
+    border-radius: 50%; font-size: 10px; line-height: 1; vertical-align: middle;
+    background: var(--surface-2); color: var(--text-muted); box-shadow: none;
+  }
+  .exercise-video-btn:hover { background: var(--accent-soft); color: var(--accent); transform: none; box-shadow: none; }
 
 
   .celebration-toast {
@@ -1598,6 +1605,31 @@
   }
 
   // ============================================================
+  // Link căutare YouTube per exercițiu (opțional, buton mic lângă nume)
+  // ============================================================
+
+  function youtubeSearchUrl(exerciseName) {
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' exercițiu tutorial')}`;
+  }
+
+  function attachExerciseVideoButtons(container, exerciseNames) {
+    const items = container.querySelectorAll('ol li');
+    items.forEach((li, i) => {
+      const name = exerciseNames[i];
+      if (!name) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'exercise-video-btn';
+      btn.title = 'Caută tutorial video pe YouTube';
+      btn.textContent = '▶';
+      btn.addEventListener('click', () => {
+        window.open(youtubeSearchUrl(name), '_blank', 'noopener');
+      });
+      li.appendChild(btn);
+    });
+  }
+
+  // ============================================================
   // Mesaje motivaționale + celebrare
   // ============================================================
 
@@ -2168,6 +2200,7 @@ Generează circuitul HIIT de azi, cu exerciții exclusiv din categoria aleasă. 
       const content = buildHiitMarkdown(plan);
       hiitPreview = { content, day: dayName, date: dateStr, intervals, planTitle: plan.title };
       preview.innerHTML = renderMarkdown(content);
+      attachExerciseVideoButtons(preview, plan.exercises);
       status.textContent = '';
       document.getElementById('hiit-finish-wrap').style.display = 'flex';
     } catch (err) {
