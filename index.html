@@ -161,15 +161,6 @@
 
   @media (max-width: 700px) {
     .header-actions { width: 100%; }
-    .settings-shortcut[data-tab="home"] {
-      height: 48px;
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      box-sizing: border-box;
-      padding: 8px 18px;
-      font-size: 14px;
-    }
     .settings-shortcut[data-tab="settings"] {
       margin-left: auto;
     }
@@ -735,7 +726,6 @@
   <div class="header-row">
     <p>No rest days. Pain is temporary, progress is permanent.</p>
     <div class="header-actions">
-      <button type="button" class="settings-shortcut active" data-tab="home">🏠 Acasă</button>
       <button type="button" class="settings-shortcut" data-tab="settings" title="Setări"><span class="btn-icon">⚙️</span><span class="btn-label">Setări</span></button>
       <div class="theme-toggle" id="theme-toggle">
         <button type="button" data-theme-choice="light" title="Mod luminos">☀️</button>
@@ -746,171 +736,19 @@
 
   <div class="nav-scroll-wrap">
     <nav id="tabs">
-      <button data-tab="workout">One time</button>
+      <button data-tab="workout" class="active">One time</button>
       <button data-tab="program-crossfit">Crossfit</button>
       <button data-tab="program-bodybuilding">Bodybuilding</button>
       <button data-tab="program-weightlifting">Lifting</button>
+      <button data-tab="nutrition">Nutriție</button>
+      <button data-tab="stats">Statistici</button>
       <button data-tab="timer">Timer</button>
     </nav>
   </div>
 
   <!-- ================= 1. HOME ================= -->
-  <section id="home" class="active">
-    <div class="stat-tiles">
-      <div class="stat-tile">
-        <div class="stat-label">Antrenamente azi</div>
-        <div class="stat-value" id="stat-workouts-today">–</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-label">Antrenamente luna asta</div>
-        <div class="stat-value" id="stat-workouts-month">–</div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-label">Nutriție azi</div>
-        <div class="stat-value stat-value-small" id="stat-nutrition-today">–</div>
-        <div class="stat-value stat-value-small" id="stat-nutrition-protein-today"></div>
-      </div>
-      <div class="stat-tile">
-        <div class="stat-label">Km alergați luna asta</div>
-        <div class="stat-value" id="stat-run-km-month">–</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <button type="button" data-tab="nutrition" class="btn-big" style="width:100%;">🍽️ Nutriție</button>
-    </div>
-
-    <div class="card">
-      <h2>Mușchi lucrați azi</h2>
-      <p class="hint">Din antrenamentele finalizate azi (One time Workout, Program Crossfit, Program Bodybuilding, Program Lifting).</p>
-      <div class="muscle-map">
-        <figure>
-          <svg viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" id="mm-front">
-            <ellipse class="mm-static" cx="110" cy="40" rx="24" ry="32"/>
-            <path class="mm-static" d="M95,64 Q110,76 125,64 L122,92 Q110,98 98,92 Z"/>
-
-            <path class="mm-detail" d="M92,92 Q110,100 128,92"/>
-
-            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M62,98 Q46,98 39,114 Q35,130 41,144 Q50,147 58,141 Q64,123 70,108 Q68,100 62,98 Z"/>
-            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M158,98 Q174,98 181,114 Q185,130 179,144 Q170,147 162,141 Q156,123 150,108 Q152,100 158,98 Z"/>
-            <path class="mm-detail" d="M50,108 Q56,124 50,140"/>
-            <path class="mm-detail" d="M170,108 Q164,124 170,140"/>
-
-            <path class="mm-region" data-muscle="chest" title="Piept" d="M74,102 Q92,92 110,94 L110,158 Q92,164 78,156 Q66,140 68,116 Q70,108 74,102 Z"/>
-            <path class="mm-region" data-muscle="chest" title="Piept" d="M146,102 Q128,92 110,94 L110,158 Q128,164 142,156 Q154,140 152,116 Q150,108 146,102 Z"/>
-            <path class="mm-detail" d="M78,112 Q94,120 108,116"/>
-            <path class="mm-detail" d="M142,112 Q126,120 112,116"/>
-
-            <path class="mm-detail" d="M70,150 Q66,162 72,176"/>
-            <path class="mm-detail" d="M150,150 Q154,162 148,176"/>
-
-            <g class="mm-region" data-muscle="abs" title="Abdomen">
-              <rect x="90" y="164" width="40" height="17" rx="6"/>
-              <rect x="90" y="184" width="40" height="17" rx="6"/>
-              <rect x="90" y="204" width="40" height="17" rx="6"/>
-            </g>
-            <path class="mm-detail" d="M110,164 L110,221"/>
-
-            <path class="mm-static" d="M66,158 Q60,190 68,226 L88,224 L88,166 Q76,162 66,158 Z"/>
-            <path class="mm-static" d="M154,158 Q160,190 152,226 L132,224 L132,166 Q144,162 154,158 Z"/>
-
-            <path class="mm-static" d="M66,224 Q110,234 154,224 Q152,242 110,248 Q68,242 66,224 Z"/>
-
-            <path class="mm-region" data-muscle="biceps" title="Biceps" d="M32,154 Q24,174 28,196 Q36,200 44,196 Q46,176 50,158 Q42,150 32,154 Z"/>
-            <path class="mm-region" data-muscle="biceps" title="Biceps" d="M188,154 Q196,174 192,196 Q184,200 176,196 Q174,176 170,158 Q178,150 188,154 Z"/>
-            <path class="mm-detail" d="M32,166 Q38,180 34,194"/>
-            <path class="mm-detail" d="M188,166 Q182,180 186,194"/>
-
-            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M25,204 Q19,228 24,250 Q32,254 39,249 Q39,225 44,206 Q34,200 25,204 Z"/>
-            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M195,204 Q201,228 196,250 Q188,254 181,249 Q181,225 176,206 Q186,200 195,204 Z"/>
-            <path class="mm-detail" d="M28,214 L34,244"/>
-            <path class="mm-detail" d="M192,214 L186,244"/>
-
-            <path class="mm-static" d="M22,254 Q18,268 24,282 Q32,286 38,280 L38,258 Q32,252 22,254 Z"/>
-            <path class="mm-static" d="M198,254 Q202,268 196,282 Q188,286 182,280 L182,258 Q188,252 198,254 Z"/>
-
-            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M64,258 Q58,320 64,370 Q72,376 80,374 Q80,312 78,258 Q70,252 64,258 Z"/>
-            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M80,258 Q80,314 80,374 Q90,378 100,374 Q100,314 98,258 Q88,252 80,258 Z"/>
-            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M98,258 Q100,314 100,374 Q106,376 112,370 Q116,320 108,258 Q104,252 98,258 Z"/>
-            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M156,258 Q162,320 156,370 Q148,376 140,374 Q140,312 142,258 Q150,252 156,258 Z"/>
-            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M140,258 Q140,314 140,374 Q130,378 120,374 Q120,314 122,258 Q132,252 140,258 Z"/>
-            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M122,258 Q120,314 120,374 Q114,376 108,370 Q104,320 112,258 Q116,252 122,258 Z"/>
-
-            <path class="mm-static" d="M68,376 Q66,406 71,430 L95,430 Q100,406 98,376 Q84,370 68,376 Z"/>
-            <path class="mm-static" d="M152,376 Q154,406 149,430 L125,430 Q120,406 122,376 Q136,370 152,376 Z"/>
-
-            <path class="mm-static" d="M67,430 L99,430 L103,442 Q84,449 65,442 Z"/>
-            <path class="mm-static" d="M153,430 L121,430 L117,442 Q136,449 155,442 Z"/>
-          </svg>
-          <figcaption>Față</figcaption>
-        </figure>
-        <figure>
-          <svg viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" id="mm-back">
-            <ellipse class="mm-static" cx="110" cy="40" rx="24" ry="32"/>
-            <path class="mm-static" d="M95,64 Q110,76 125,64 L122,92 Q110,98 98,92 Z"/>
-
-            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M62,98 Q46,98 39,114 Q35,130 41,144 Q50,147 58,141 Q64,123 70,108 Q68,100 62,98 Z"/>
-            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M158,98 Q174,98 181,114 Q185,130 179,144 Q170,147 162,141 Q156,123 150,108 Q152,100 158,98 Z"/>
-
-            <path class="mm-region" data-muscle="back" title="Spate" d="M110,92 L142,110 Q126,122 110,150 Q94,122 78,110 Z"/>
-
-            <path class="mm-region" data-muscle="back" title="Spate" d="M78,110 Q64,116 60,140 Q58,168 68,192 Q84,198 100,190 Q108,160 108,128 Q100,112 78,110 Z"/>
-            <path class="mm-region" data-muscle="back" title="Spate" d="M142,110 Q156,116 160,140 Q162,168 152,192 Q136,198 120,190 Q112,160 112,128 Q120,112 142,110 Z"/>
-
-            <path class="mm-region" data-muscle="back" title="Spate" d="M96,192 Q92,208 96,224 L106,224 L106,190 Z"/>
-            <path class="mm-region" data-muscle="back" title="Spate" d="M124,192 Q128,208 124,224 L114,224 L114,190 Z"/>
-
-            <path class="mm-static" d="M64,192 Q60,208 66,224 L86,222 L86,196 Q76,194 64,192 Z"/>
-            <path class="mm-static" d="M156,192 Q160,208 154,224 L134,222 L134,196 Q144,194 156,192 Z"/>
-
-            <path class="mm-region" data-muscle="glutes" title="Fesieri" d="M64,224 Q66,208 88,208 Q108,210 108,232 Q108,258 86,264 Q64,260 60,240 Q60,230 64,224 Z"/>
-            <path class="mm-region" data-muscle="glutes" title="Fesieri" d="M156,224 Q154,208 132,208 Q112,210 112,232 Q112,258 134,264 Q156,260 160,240 Q160,230 156,224 Z"/>
-
-            <path class="mm-region" data-muscle="triceps" title="Triceps" d="M32,154 Q24,174 28,196 Q36,200 44,196 Q46,176 50,158 Q42,150 32,154 Z"/>
-            <path class="mm-region" data-muscle="triceps" title="Triceps" d="M188,154 Q196,174 192,196 Q184,200 176,196 Q174,176 170,158 Q178,150 188,154 Z"/>
-            <path class="mm-detail" d="M32,166 Q38,180 34,194"/>
-            <path class="mm-detail" d="M188,166 Q182,180 186,194"/>
-
-            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M25,204 Q19,228 24,250 Q32,254 39,249 Q39,225 44,206 Q34,200 25,204 Z"/>
-            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M195,204 Q201,228 196,250 Q188,254 181,249 Q181,225 176,206 Q186,200 195,204 Z"/>
-
-            <path class="mm-static" d="M22,254 Q18,268 24,282 Q32,286 38,280 L38,258 Q32,252 22,254 Z"/>
-            <path class="mm-static" d="M198,254 Q202,268 196,282 Q188,286 182,280 L182,258 Q188,252 198,254 Z"/>
-
-            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M64,264 Q58,318 65,364 Q76,370 86,364 Q86,314 86,262 Q74,256 64,264 Z"/>
-            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M86,262 Q86,314 86,364 Q96,370 106,364 Q112,318 106,264 Q96,256 86,262 Z"/>
-            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M156,264 Q162,318 155,364 Q144,370 134,364 Q134,314 134,262 Q146,256 156,264 Z"/>
-            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M134,262 Q134,314 134,364 Q124,370 114,364 Q108,318 114,264 Q124,256 134,262 Z"/>
-
-            <path class="mm-region" data-muscle="calves" title="Gambe" d="M66,368 Q60,388 64,406 Q74,412 84,406 Q86,388 84,370 Q76,364 66,368 Z"/>
-            <path class="mm-region" data-muscle="calves" title="Gambe" d="M84,370 Q86,388 84,406 Q92,410 98,404 Q100,388 96,372 Q90,368 84,370 Z"/>
-            <path class="mm-region" data-muscle="calves" title="Gambe" d="M154,368 Q160,388 156,406 Q146,412 136,406 Q134,388 136,370 Q144,364 154,368 Z"/>
-            <path class="mm-region" data-muscle="calves" title="Gambe" d="M136,370 Q134,388 136,406 Q128,410 122,404 Q120,388 124,372 Q130,368 136,370 Z"/>
-
-            <path class="mm-static" d="M66,408 Q66,420 71,430 L95,430 Q98,420 96,408 Q82,404 66,408 Z"/>
-            <path class="mm-static" d="M154,408 Q154,420 149,430 L125,430 Q122,420 124,408 Q138,404 154,408 Z"/>
-
-            <path class="mm-static" d="M67,430 L99,430 L103,440 Q84,446 65,440 Z"/>
-            <path class="mm-static" d="M153,430 L121,430 L117,440 Q136,446 155,440 Z"/>
-          </svg>
-          <figcaption>Spate</figcaption>
-        </figure>
-      </div>
-      <p class="hint" id="muscle-map-summary">Niciun antrenament bifat azi încă.</p>
-      <div class="muscle-legend">
-        <span><i class="swatch-low"></i> Ușor</span>
-        <span><i class="swatch-medium"></i> Moderat</span>
-        <span><i class="swatch-high"></i> Intens</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <button type="button" data-tab="stats" class="btn-big" style="width:100%;">📊 Vezi Statistici</button>
-    </div>
-  </section>
-
   <!-- ================= 2. CUSTOM WORKOUT ================= -->
-  <section id="workout">
+  <section id="workout" class="active">
     <div class="card">
       <h2>HIIT</h2>
       <p class="hint">Antrenament pe intervale, cu cronometru integrat. Alege nivelul, tipurile de exerciții și, opțional, echipamentul disponibil.</p>
@@ -1035,7 +873,7 @@
 
     <div class="card">
       <h2>Antrenament (stil CrossFit / functional)</h2>
-      <p class="hint">Generat pe baza echipamentului și skill-urilor tale. Contează în statisticile de pe Home și în silueta musculară.</p>
+      <p class="hint">Generat pe baza echipamentului și skill-urilor tale. Contează în Statistici și în silueta musculară.</p>
 
       <details class="manual-entry">
         <summary><h2>Configurare</h2></summary>
@@ -1229,7 +1067,6 @@
 
   <!-- ================= 3. NUTRIȚIE ================= -->
   <section id="nutrition">
-    <button type="button" data-tab="home" class="settings-shortcut">← Înapoi</button>
 
     <div class="card">
       <h2>Adaugă masă</h2>
@@ -1711,7 +1548,150 @@
 
   <!-- ================= 7. STATISTICI ================= -->
   <section id="stats">
-    <button type="button" data-tab="home" class="settings-shortcut">← Înapoi</button>
+
+    <div class="stat-tiles">
+      <div class="stat-tile">
+        <div class="stat-label">Antrenamente azi</div>
+        <div class="stat-value" id="stat-workouts-today">–</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Antrenamente luna asta</div>
+        <div class="stat-value" id="stat-workouts-month">–</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Nutriție azi</div>
+        <div class="stat-value stat-value-small" id="stat-nutrition-today">–</div>
+        <div class="stat-value stat-value-small" id="stat-nutrition-protein-today"></div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Km alergați luna asta</div>
+        <div class="stat-value" id="stat-run-km-month">–</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Mușchi lucrați azi</h2>
+      <p class="hint">Din antrenamentele finalizate azi (One time Workout, Program Crossfit, Program Bodybuilding, Program Lifting).</p>
+      <div class="muscle-map">
+        <figure>
+          <svg viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" id="mm-front">
+            <ellipse class="mm-static" cx="110" cy="40" rx="24" ry="32"/>
+            <path class="mm-static" d="M95,64 Q110,76 125,64 L122,92 Q110,98 98,92 Z"/>
+
+            <path class="mm-detail" d="M92,92 Q110,100 128,92"/>
+
+            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M62,98 Q46,98 39,114 Q35,130 41,144 Q50,147 58,141 Q64,123 70,108 Q68,100 62,98 Z"/>
+            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M158,98 Q174,98 181,114 Q185,130 179,144 Q170,147 162,141 Q156,123 150,108 Q152,100 158,98 Z"/>
+            <path class="mm-detail" d="M50,108 Q56,124 50,140"/>
+            <path class="mm-detail" d="M170,108 Q164,124 170,140"/>
+
+            <path class="mm-region" data-muscle="chest" title="Piept" d="M74,102 Q92,92 110,94 L110,158 Q92,164 78,156 Q66,140 68,116 Q70,108 74,102 Z"/>
+            <path class="mm-region" data-muscle="chest" title="Piept" d="M146,102 Q128,92 110,94 L110,158 Q128,164 142,156 Q154,140 152,116 Q150,108 146,102 Z"/>
+            <path class="mm-detail" d="M78,112 Q94,120 108,116"/>
+            <path class="mm-detail" d="M142,112 Q126,120 112,116"/>
+
+            <path class="mm-detail" d="M70,150 Q66,162 72,176"/>
+            <path class="mm-detail" d="M150,150 Q154,162 148,176"/>
+
+            <g class="mm-region" data-muscle="abs" title="Abdomen">
+              <rect x="90" y="164" width="40" height="17" rx="6"/>
+              <rect x="90" y="184" width="40" height="17" rx="6"/>
+              <rect x="90" y="204" width="40" height="17" rx="6"/>
+            </g>
+            <path class="mm-detail" d="M110,164 L110,221"/>
+
+            <path class="mm-static" d="M66,158 Q60,190 68,226 L88,224 L88,166 Q76,162 66,158 Z"/>
+            <path class="mm-static" d="M154,158 Q160,190 152,226 L132,224 L132,166 Q144,162 154,158 Z"/>
+
+            <path class="mm-static" d="M66,224 Q110,234 154,224 Q152,242 110,248 Q68,242 66,224 Z"/>
+
+            <path class="mm-region" data-muscle="biceps" title="Biceps" d="M32,154 Q24,174 28,196 Q36,200 44,196 Q46,176 50,158 Q42,150 32,154 Z"/>
+            <path class="mm-region" data-muscle="biceps" title="Biceps" d="M188,154 Q196,174 192,196 Q184,200 176,196 Q174,176 170,158 Q178,150 188,154 Z"/>
+            <path class="mm-detail" d="M32,166 Q38,180 34,194"/>
+            <path class="mm-detail" d="M188,166 Q182,180 186,194"/>
+
+            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M25,204 Q19,228 24,250 Q32,254 39,249 Q39,225 44,206 Q34,200 25,204 Z"/>
+            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M195,204 Q201,228 196,250 Q188,254 181,249 Q181,225 176,206 Q186,200 195,204 Z"/>
+            <path class="mm-detail" d="M28,214 L34,244"/>
+            <path class="mm-detail" d="M192,214 L186,244"/>
+
+            <path class="mm-static" d="M22,254 Q18,268 24,282 Q32,286 38,280 L38,258 Q32,252 22,254 Z"/>
+            <path class="mm-static" d="M198,254 Q202,268 196,282 Q188,286 182,280 L182,258 Q188,252 198,254 Z"/>
+
+            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M64,258 Q58,320 64,370 Q72,376 80,374 Q80,312 78,258 Q70,252 64,258 Z"/>
+            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M80,258 Q80,314 80,374 Q90,378 100,374 Q100,314 98,258 Q88,252 80,258 Z"/>
+            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M98,258 Q100,314 100,374 Q106,376 112,370 Q116,320 108,258 Q104,252 98,258 Z"/>
+            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M156,258 Q162,320 156,370 Q148,376 140,374 Q140,312 142,258 Q150,252 156,258 Z"/>
+            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M140,258 Q140,314 140,374 Q130,378 120,374 Q120,314 122,258 Q132,252 140,258 Z"/>
+            <path class="mm-region" data-muscle="quads" title="Cvadriceps" d="M122,258 Q120,314 120,374 Q114,376 108,370 Q104,320 112,258 Q116,252 122,258 Z"/>
+
+            <path class="mm-static" d="M68,376 Q66,406 71,430 L95,430 Q100,406 98,376 Q84,370 68,376 Z"/>
+            <path class="mm-static" d="M152,376 Q154,406 149,430 L125,430 Q120,406 122,376 Q136,370 152,376 Z"/>
+
+            <path class="mm-static" d="M67,430 L99,430 L103,442 Q84,449 65,442 Z"/>
+            <path class="mm-static" d="M153,430 L121,430 L117,442 Q136,449 155,442 Z"/>
+          </svg>
+          <figcaption>Față</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" id="mm-back">
+            <ellipse class="mm-static" cx="110" cy="40" rx="24" ry="32"/>
+            <path class="mm-static" d="M95,64 Q110,76 125,64 L122,92 Q110,98 98,92 Z"/>
+
+            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M62,98 Q46,98 39,114 Q35,130 41,144 Q50,147 58,141 Q64,123 70,108 Q68,100 62,98 Z"/>
+            <path class="mm-region" data-muscle="shoulders" title="Umeri" d="M158,98 Q174,98 181,114 Q185,130 179,144 Q170,147 162,141 Q156,123 150,108 Q152,100 158,98 Z"/>
+
+            <path class="mm-region" data-muscle="back" title="Spate" d="M110,92 L142,110 Q126,122 110,150 Q94,122 78,110 Z"/>
+
+            <path class="mm-region" data-muscle="back" title="Spate" d="M78,110 Q64,116 60,140 Q58,168 68,192 Q84,198 100,190 Q108,160 108,128 Q100,112 78,110 Z"/>
+            <path class="mm-region" data-muscle="back" title="Spate" d="M142,110 Q156,116 160,140 Q162,168 152,192 Q136,198 120,190 Q112,160 112,128 Q120,112 142,110 Z"/>
+
+            <path class="mm-region" data-muscle="back" title="Spate" d="M96,192 Q92,208 96,224 L106,224 L106,190 Z"/>
+            <path class="mm-region" data-muscle="back" title="Spate" d="M124,192 Q128,208 124,224 L114,224 L114,190 Z"/>
+
+            <path class="mm-static" d="M64,192 Q60,208 66,224 L86,222 L86,196 Q76,194 64,192 Z"/>
+            <path class="mm-static" d="M156,192 Q160,208 154,224 L134,222 L134,196 Q144,194 156,192 Z"/>
+
+            <path class="mm-region" data-muscle="glutes" title="Fesieri" d="M64,224 Q66,208 88,208 Q108,210 108,232 Q108,258 86,264 Q64,260 60,240 Q60,230 64,224 Z"/>
+            <path class="mm-region" data-muscle="glutes" title="Fesieri" d="M156,224 Q154,208 132,208 Q112,210 112,232 Q112,258 134,264 Q156,260 160,240 Q160,230 156,224 Z"/>
+
+            <path class="mm-region" data-muscle="triceps" title="Triceps" d="M32,154 Q24,174 28,196 Q36,200 44,196 Q46,176 50,158 Q42,150 32,154 Z"/>
+            <path class="mm-region" data-muscle="triceps" title="Triceps" d="M188,154 Q196,174 192,196 Q184,200 176,196 Q174,176 170,158 Q178,150 188,154 Z"/>
+            <path class="mm-detail" d="M32,166 Q38,180 34,194"/>
+            <path class="mm-detail" d="M188,166 Q182,180 186,194"/>
+
+            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M25,204 Q19,228 24,250 Q32,254 39,249 Q39,225 44,206 Q34,200 25,204 Z"/>
+            <path class="mm-region" data-muscle="forearms" title="Antebrațe" d="M195,204 Q201,228 196,250 Q188,254 181,249 Q181,225 176,206 Q186,200 195,204 Z"/>
+
+            <path class="mm-static" d="M22,254 Q18,268 24,282 Q32,286 38,280 L38,258 Q32,252 22,254 Z"/>
+            <path class="mm-static" d="M198,254 Q202,268 196,282 Q188,286 182,280 L182,258 Q188,252 198,254 Z"/>
+
+            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M64,264 Q58,318 65,364 Q76,370 86,364 Q86,314 86,262 Q74,256 64,264 Z"/>
+            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M86,262 Q86,314 86,364 Q96,370 106,364 Q112,318 106,264 Q96,256 86,262 Z"/>
+            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M156,264 Q162,318 155,364 Q144,370 134,364 Q134,314 134,262 Q146,256 156,264 Z"/>
+            <path class="mm-region" data-muscle="hamstrings" title="Ischio" d="M134,262 Q134,314 134,364 Q124,370 114,364 Q108,318 114,264 Q124,256 134,262 Z"/>
+
+            <path class="mm-region" data-muscle="calves" title="Gambe" d="M66,368 Q60,388 64,406 Q74,412 84,406 Q86,388 84,370 Q76,364 66,368 Z"/>
+            <path class="mm-region" data-muscle="calves" title="Gambe" d="M84,370 Q86,388 84,406 Q92,410 98,404 Q100,388 96,372 Q90,368 84,370 Z"/>
+            <path class="mm-region" data-muscle="calves" title="Gambe" d="M154,368 Q160,388 156,406 Q146,412 136,406 Q134,388 136,370 Q144,364 154,368 Z"/>
+            <path class="mm-region" data-muscle="calves" title="Gambe" d="M136,370 Q134,388 136,406 Q128,410 122,404 Q120,388 124,372 Q130,368 136,370 Z"/>
+
+            <path class="mm-static" d="M66,408 Q66,420 71,430 L95,430 Q98,420 96,408 Q82,404 66,408 Z"/>
+            <path class="mm-static" d="M154,408 Q154,420 149,430 L125,430 Q122,420 124,408 Q138,404 154,408 Z"/>
+
+            <path class="mm-static" d="M67,430 L99,430 L103,440 Q84,446 65,440 Z"/>
+            <path class="mm-static" d="M153,430 L121,430 L117,440 Q136,446 155,440 Z"/>
+          </svg>
+          <figcaption>Spate</figcaption>
+        </figure>
+      </div>
+      <p class="hint" id="muscle-map-summary">Niciun antrenament bifat azi încă.</p>
+      <div class="muscle-legend">
+        <span><i class="swatch-low"></i> Ușor</span>
+        <span><i class="swatch-medium"></i> Moderat</span>
+        <span><i class="swatch-high"></i> Intens</span>
+      </div>
+    </div>
 
     <div class="card">
       <h2>Statistici anuale</h2>
