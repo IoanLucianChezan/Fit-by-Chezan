@@ -1769,13 +1769,18 @@
       throw new Error('Configurează cel puțin o cheie API (Gemini sau Groq) în Setări.');
     }
     const errors = [];
+    let rateLimitCount = 0;
     for (const attempt of attempts) {
       try {
         const content = await callChatCompletionClient(attempt.url, attempt.key, attempt.model, messages);
         return { content: stripThinking(content), provider: attempt.provider, model: attempt.model };
       } catch (err) {
+        if (err.message.startsWith('429:')) rateLimitCount++;
         errors.push(`${attempt.provider}/${attempt.model}: ${err.message}`);
       }
+    }
+    if (rateLimitCount === attempts.length) {
+      throw new Error('Ai atins limita gratuită de cereri pentru moment. Încearcă din nou peste un minut sau două.');
     }
     throw new Error(`Toate încercările (Gemini + Groq) au eșuat. — ${errors.join(' || ')}`);
   }
