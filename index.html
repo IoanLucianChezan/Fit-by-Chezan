@@ -356,6 +356,12 @@
     background: var(--surface-2); color: var(--text-muted); box-shadow: none;
   }
   .exercise-video-btn:hover { background: var(--accent-soft); color: var(--accent); transform: none; box-shadow: none; }
+  .exercise-video-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .exercise-video-chip {
+    padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 999px;
+    background: var(--surface-2); color: var(--text-muted); box-shadow: none;
+  }
+  .exercise-video-chip:hover { background: var(--accent-soft); color: var(--accent); transform: none; box-shadow: none; }
 
 
   .celebration-toast {
@@ -1629,6 +1635,56 @@
     });
   }
 
+  // Pentru conținut fără listă numerotată curată (Challenge, Easy WOD): un rând de
+  // butoane sub text, câte unul pentru fiecare exercițiu distinct identificat.
+  function appendVideoButtonRow(container, exerciseNames) {
+    const names = [...new Set((exerciseNames || []).filter(Boolean))];
+    if (!names.length) return;
+    const row = document.createElement('div');
+    row.className = 'exercise-video-row';
+    names.forEach(name => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'exercise-video-chip';
+      btn.textContent = `▶ ${name}`;
+      btn.title = 'Caută tutorial video pe YouTube';
+      btn.addEventListener('click', () => {
+        window.open(youtubeSearchUrl(name), '_blank', 'noopener');
+      });
+      row.appendChild(btn);
+    });
+    container.appendChild(row);
+  }
+
+  // Vocabular închis de exerciții bodyweight folosit la Easy WOD (vezi
+  // EASY_WORKOUT_SYSTEM_PROMPT) - identifică exercițiile folosite prin căutare de
+  // cuvinte-cheie în textul generat de AI, fără să depindă de un format JSON.
+  const EASY_WOD_EXERCISE_PATTERNS = [
+    [/side\s?plank/i, 'Side Plank'],
+    [/plank|plan[șs][aă]/i, 'Plank'],
+    [/push-?up|flot[aă]ri?/i, 'Push-Ups'],
+    [/squat|genoflexiun/i, 'Squats'],
+    [/bicycle\s?crunch/i, 'Bicycle Crunches'],
+    [/crunch/i, 'Crunches'],
+    [/sit-?up/i, 'Sit-Ups'],
+    [/leg\s?raise|ridic[aă]ri? de picio/i, 'Leg Raises'],
+    [/russian\s?twist/i, 'Russian Twists'],
+    [/mountain\s?climber/i, 'Mountain Climbers'],
+    [/dip/i, 'Triceps Dips'],
+    [/lunge|fand[aă]r/i, 'Lunges'],
+    [/glute\s?bridge|hip\s?bridge/i, 'Glute Bridge'],
+    [/superman/i, 'Superman'],
+    [/burpee/i, 'Burpees'],
+    [/jumping\s?jack/i, 'Jumping Jacks']
+  ];
+  function detectEasyWodExercises(text) {
+    const found = [];
+    EASY_WOD_EXERCISE_PATTERNS.forEach(([pattern, label]) => {
+      if (pattern.test(text) && !found.includes(label)) found.push(label);
+    });
+    return found;
+  }
+
   // ============================================================
   // Mesaje motivaționale + celebrare
   // ============================================================
@@ -2643,6 +2699,8 @@ formatul exact:
     +2/min)', 'EMOM: 10 Burpees/min')",
   "penaltyNote": "detalii suplimentare de structură dacă formatul are pași (ex: progresia exactă
     a unui ladder, sau exercițiile pe minut la un EMOM cu variație), sau text gol dacă nu e cazul",
+  "exercises": [lista numelor distincte de exerciții folosite, în engleză, ex: ["Burpees",
+    "Push-Ups", "Air Squats"]],
   "notes": "1 propoziție scurtă cu sfat de tehnică/siguranță"
 }`;
 
@@ -2670,9 +2728,12 @@ Generează challenge-ul de azi (sub 6 minute).`;
       ? `Contra cronometru — ${Math.round(plan.timeCapSeconds / 60)} min`
       : 'Cronometru deschis (oprești manual la final)'}`);
     if (plan.penaltyNote) lines.push(`**Detalii:** ${plan.penaltyNote}`);
-    if (plan.notes) {
+    const videoHint = plan.exercises && plan.exercises.length
+      ? 'Apasă un buton de mai jos ca să cauți un tutorial video pe YouTube pentru acel exercițiu.'
+      : '';
+    if (videoHint || plan.notes) {
       lines.push('');
-      lines.push(`**Note:** ${plan.notes}`);
+      lines.push(`**Note:** ${videoHint}${videoHint && plan.notes ? ' ' : ''}${plan.notes || ''}`);
     }
     return lines.join('\n');
   }
@@ -2707,6 +2768,7 @@ Generează challenge-ul de azi (sub 6 minute).`;
         : 0;
       plan.targetLabel = plan.targetLabel || 'Challenge';
       plan.penaltyNote = plan.penaltyNote || '';
+      plan.exercises = Array.isArray(plan.exercises) ? plan.exercises.filter(Boolean) : [];
       const content = buildChallengeMarkdown(plan);
       challengePreview = {
         content, day: dayName, date: dateStr,
@@ -2714,6 +2776,7 @@ Generează challenge-ul de azi (sub 6 minute).`;
         targetLabel: plan.targetLabel, penaltyNote: plan.penaltyNote, planTitle: plan.title
       };
       preview.innerHTML = renderMarkdown(content);
+      appendVideoButtonRow(preview, plan.exercises);
       status.textContent = '';
       document.getElementById('challenge-finish-wrap').style.display = 'flex';
     } catch (err) {
@@ -3502,6 +3565,15 @@ Generează un antrenament bodyweight nou, pe saltea, de 15-30 de minute, cu un f
       const result = await generateWithFallback(messages);
       easyWorkoutPreview = { ...result, day: dayName, date: dateStr };
       preview.innerHTML = renderMarkdown(result.content);
+      const easyExercises = detectEasyWodExercises(result.content);
+      if (easyExercises.length) {
+        const hint = document.createElement('p');
+        hint.className = 'hint';
+        hint.style.marginTop = '12px';
+        hint.textContent = 'Apasă un buton de mai jos ca să cauți un tutorial video pe YouTube pentru acel exercițiu.';
+        preview.appendChild(hint);
+      }
+      appendVideoButtonRow(preview, easyExercises);
       status.textContent = '';
       document.getElementById('easy-finish-wrap').style.display = 'flex';
     } catch (err) {
