@@ -320,7 +320,6 @@
   input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
   #save-config-status, #save-settings-status, #meal-save-status, #save-profile-status,
-  #test-cerebras-status, #test-groq-status { margin-left: 10px; font-size: 13px; color: var(--text-muted); }
 
   .workout-result { margin-top: 12px; font-size: 14px; }
   .workout-result:not(:empty) { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
@@ -1400,22 +1399,22 @@
     <div class="privacy-note">
       🔒 Cheile tale API rămân doar în acest browser (localStorage). Nu sunt trimise niciodată către
       vreun server al aplicației — nu există un server. Apelurile merg direct din browserul tău către
-      Cerebras/Groq.
+      Gemini/Groq.
     </div>
 
     <div class="card">
-      <h2>Cerebras</h2>
+      <h2>Gemini</h2>
       <div class="settings-field">
-        <label for="set-cerebras-key">Cerebras API Key</label>
-        <input type="password" id="set-cerebras-key" placeholder="csk-...">
+        <label for="set-gemini-key">Gemini API Key</label>
+        <input type="password" id="set-gemini-key" placeholder="AIza...">
       </div>
       <div class="settings-field">
-        <label for="set-cerebras-model">Model Cerebras</label>
-        <input type="text" id="set-cerebras-model" placeholder="gpt-oss-120b">
+        <label for="set-gemini-model">Model Gemini</label>
+        <input type="text" id="set-gemini-model" placeholder="gemini-2.5-flash">
       </div>
       <div class="settings-field">
-        <label for="set-cerebras-model-fallback">Model Cerebras (rezervă)</label>
-        <input type="text" id="set-cerebras-model-fallback" placeholder="gemma-4-31b">
+        <label for="set-gemini-model-fallback">Model Gemini (rezervă)</label>
+        <input type="text" id="set-gemini-model-fallback" placeholder="gemini-2.5-flash-lite">
       </div>
     </div>
 
@@ -1757,14 +1756,14 @@
   }
 
   // ============================================================
-  // AI: apel direct din browser către Cerebras/Groq, cu cheile utilizatorului
+  // AI: apel direct din browser către Gemini/Groq, cu cheile utilizatorului
   // (Setări), salvate doar în localStorage. Fără server, fără proxy.
   // ============================================================
 
   const SETTINGS_KEY = 'fw_settings';
   const DEFAULT_MODELS = {
-    cerebrasModel: 'gpt-oss-120b',
-    cerebrasModelFallback: 'gemma-4-31b',
+    geminiModel: 'gemini-2.5-flash',
+    geminiModelFallback: 'gemini-2.5-flash-lite',
     groqModel: 'llama-3.3-70b-versatile',
     groqModelFallback: 'openai/gpt-oss-120b',
     groqVisionModel: 'qwen/qwen3.6-27b'
@@ -1772,7 +1771,7 @@
 
   function loadAiSettings() {
     return lsGet(SETTINGS_KEY, {
-      cerebrasKey: '', cerebrasModel: '', cerebrasModelFallback: '',
+      geminiKey: '', geminiModel: '', geminiModelFallback: '',
       groqKey: '', groqModel: '', groqModelFallback: '', groqVisionModel: ''
     });
   }
@@ -1786,9 +1785,9 @@
   function buildAiAttempts() {
     const s = loadAiSettings();
     const attempts = [];
-    if (s.cerebrasKey) {
-      attempts.push({ provider: 'cerebras', url: 'https://api.cerebras.ai/v1/chat/completions', key: s.cerebrasKey, model: getModelOrDefault(s.cerebrasModel, 'cerebrasModel') });
-      attempts.push({ provider: 'cerebras', url: 'https://api.cerebras.ai/v1/chat/completions', key: s.cerebrasKey, model: getModelOrDefault(s.cerebrasModelFallback, 'cerebrasModelFallback') });
+    if (s.geminiKey) {
+      attempts.push({ provider: 'gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: s.geminiKey, model: getModelOrDefault(s.geminiModel, 'geminiModel') });
+      attempts.push({ provider: 'gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: s.geminiKey, model: getModelOrDefault(s.geminiModelFallback, 'geminiModelFallback') });
     }
     if (s.groqKey) {
       attempts.push({ provider: 'groq', url: 'https://api.groq.com/openai/v1/chat/completions', key: s.groqKey, model: getModelOrDefault(s.groqModel, 'groqModel') });
@@ -1816,7 +1815,8 @@
     clearTimeout(timer);
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      throw new Error(`${res.status}: ${errBody?.error?.message || res.statusText}`);
+      const errObj = Array.isArray(errBody) ? errBody[0] : errBody;
+      throw new Error(`${res.status}: ${errObj?.error?.message || res.statusText}`);
     }
     const data = await res.json();
     const content = data?.choices?.[0]?.message?.content;
@@ -1827,7 +1827,7 @@
   async function generateWithFallback(messages) {
     const attempts = buildAiAttempts();
     if (!attempts.length) {
-      throw new Error('Configurează cel puțin o cheie API (Cerebras sau Groq) în Setări.');
+      throw new Error('Configurează cel puțin o cheie API (Gemini sau Groq) în Setări.');
     }
     const errors = [];
     for (const attempt of attempts) {
@@ -1838,7 +1838,7 @@
         errors.push(`${attempt.provider}/${attempt.model}: ${err.message}`);
       }
     }
-    throw new Error(`Toate încercările (Cerebras + Groq) au eșuat. — ${errors.join(' || ')}`);
+    throw new Error(`Toate încercările (Gemini + Groq) au eșuat. — ${errors.join(' || ')}`);
   }
 
   async function visionTranscribeServer(messages) {
@@ -4991,9 +4991,9 @@ Generează antrenamentul concret de azi.`;
 
   function loadAiSettingsForm() {
     const s = loadAiSettings();
-    document.getElementById('set-cerebras-key').value = s.cerebrasKey || '';
-    document.getElementById('set-cerebras-model').value = s.cerebrasModel || '';
-    document.getElementById('set-cerebras-model-fallback').value = s.cerebrasModelFallback || '';
+    document.getElementById('set-gemini-key').value = s.geminiKey || '';
+    document.getElementById('set-gemini-model').value = s.geminiModel || '';
+    document.getElementById('set-gemini-model-fallback').value = s.geminiModelFallback || '';
     document.getElementById('set-groq-key').value = s.groqKey || '';
     document.getElementById('set-groq-model').value = s.groqModel || '';
     document.getElementById('set-groq-model-fallback').value = s.groqModelFallback || '';
@@ -5003,9 +5003,9 @@ Generează antrenamentul concret de azi.`;
   document.getElementById('save-settings').addEventListener('click', () => {
     const status = document.getElementById('save-settings-status');
     saveAiSettings({
-      cerebrasKey: document.getElementById('set-cerebras-key').value.trim(),
-      cerebrasModel: document.getElementById('set-cerebras-model').value.trim(),
-      cerebrasModelFallback: document.getElementById('set-cerebras-model-fallback').value.trim(),
+      geminiKey: document.getElementById('set-gemini-key').value.trim(),
+      geminiModel: document.getElementById('set-gemini-model').value.trim(),
+      geminiModelFallback: document.getElementById('set-gemini-model-fallback').value.trim(),
       groqKey: document.getElementById('set-groq-key').value.trim(),
       groqModel: document.getElementById('set-groq-model').value.trim(),
       groqModelFallback: document.getElementById('set-groq-model-fallback').value.trim(),
