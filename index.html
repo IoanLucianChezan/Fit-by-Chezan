@@ -1609,7 +1609,7 @@
   // ============================================================
 
   function youtubeSearchUrl(exerciseName) {
-    return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' exercițiu tutorial')}`;
+    return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' tutorial')}`;
   }
 
   function attachExerciseVideoButtons(container, exerciseNames) {
@@ -2158,10 +2158,9 @@ Generează circuitul HIIT de azi, cu exerciții exclusiv din categoria aleasă. 
     lines.push('');
     lines.push('**Exerciții (în ordine, per rundă):**');
     plan.exercises.forEach((ex, i) => lines.push(`${i + 1}. ${ex}`));
-    if (plan.notes) {
-      lines.push('');
-      lines.push(`**Note:** ${plan.notes}`);
-    }
+    lines.push('');
+    const videoHint = 'Apasă ▶ lângă un exercițiu ca să cauți un tutorial video pe YouTube.';
+    lines.push(`**Note:** ${videoHint}${plan.notes ? ' ' + plan.notes : ''}`);
     return lines.join('\n');
   }
 
